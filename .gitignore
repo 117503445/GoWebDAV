@@ -14,5 +14,6 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 .idea
-TestDir/
+TestDir1/
+TestDir2/
 config.yml

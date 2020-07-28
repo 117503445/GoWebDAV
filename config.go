@@ -6,11 +6,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-type config struct {
+type Config struct {
 	dav string
 }
 
-func (config *config) Load() {
+func (config *Config) Load() {
 	pflag.String("dav", "/dav1,user1,pass1;/dav2,user2,pass2", "like /dav1,user1,pass1;/dav2,user2,pass2")
 	pflag.Parse()
 
@@ -25,4 +25,4 @@ func (config *config) Load() {
 	config.dav = viper.GetString("dav")
 }
 
-var AppConfig *config = &config{}
+var AppConfig *Config = &Config{}

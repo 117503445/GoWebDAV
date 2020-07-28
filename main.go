@@ -13,16 +13,15 @@ import (
 )
 
 func handleDirList(fs webdav.FileSystem, w http.ResponseWriter, req *http.Request, prefix string) bool {
-
 	ctx := context.Background()
+
 	path := req.URL.Path
 	path = strings.Replace(path, prefix, "/", 1)
+
 	f, err := fs.OpenFile(ctx, path, os.O_RDONLY, 0)
 
 	if err != nil {
-
 		return false
-
 	}
 
 	defer f.Close()
@@ -36,33 +35,32 @@ func handleDirList(fs webdav.FileSystem, w http.ResponseWriter, req *http.Reques
 	dirs, err := f.Readdir(-1)
 
 	if err != nil {
-
 		log.Print(w, "Error reading directory", http.StatusInternalServerError)
-
 		return false
-
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	fmt.Fprintf(w, "<pre>\n")
-
-	for _, d := range dirs {
-
-		name := d.Name()
-
-		if d.IsDir() {
-
-			name += "/"
-
-		}
-
-		fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", name, name)
-
+	_, err = fmt.Fprintf(w, "<pre>\n")
+	if err != nil {
+		fmt.Println(err)
 	}
 
-	fmt.Fprintf(w, "</pre>\n")
+	for _, d := range dirs {
+		name := d.Name()
+		if d.IsDir() {
+			name += "/"
+		}
+		_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", name, name)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 
+	_, err = fmt.Fprintf(w, "</pre>\n")
+	if err != nil {
+		fmt.Println(err)
+	}
 	return true
 
 }
@@ -74,13 +72,26 @@ func main() {
 	AppConfig.Load()
 
 	fmt.Println(AppConfig.dav)
-	fs := &webdav.Handler{
 
-		FileSystem: webdav.Dir("./TestDir"),
+	davConfigs := strings.Split(AppConfig.dav, ";")
 
-		LockSystem: webdav.NewMemLS(),
-		Prefix:     "/dav1",
+	for _, davConfig := range davConfigs {
+		davConfigArray := strings.Split(davConfig, ",")
+		fmt.Println(davConfigArray)
+
+		prefix := davConfigArray[0]
+		pathDir := davConfigArray[1]
+		username := davConfigArray[2]
+		password := davConfigArray[3]
+
+		fs := &webdav.Handler{
+			FileSystem: webdav.Dir("./TestDir"),
+			LockSystem: webdav.NewMemLS(),
+			Prefix:     "/dav1",
+		}
 	}
+
+
 	sMux := http.NewServeMux()
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 
