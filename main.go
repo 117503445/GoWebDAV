@@ -50,7 +50,7 @@ func handleDirList(fs webdav.FileSystem, w http.ResponseWriter, req *http.Reques
 		if d.IsDir() {
 			name += "/"
 		}
-		_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", prefix+"/"+name, name)
+		_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", prefix+"/"+path+"/"+name, name)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -111,8 +111,7 @@ func main() {
 				fmt.Println(err)
 			}
 
-
-			for _ , config:=range WebDAVConfigs{
+			for _, config := range WebDAVConfigs {
 				_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", config.Prefix+"/", config.Prefix)
 				if err != nil {
 					fmt.Println(err)
