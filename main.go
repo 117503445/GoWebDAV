@@ -50,7 +50,7 @@ func handleDirList(fs webdav.FileSystem, w http.ResponseWriter, req *http.Reques
 		if d.IsDir() {
 			name += "/"
 		}
-		_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", name, name)
+		_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", prefix+"/"+name, name)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -98,25 +98,31 @@ func main() {
 		}
 
 		webDAVConfig := model.WebDAVConfigFindOneByPrefix(WebDAVConfigs, parsePrefixFromURL(req.URL))
+
 		if webDAVConfig == nil {
 			http.NotFound(w, req)
 			return
 		}
 
-		if username != webDAVConfig.Username || password != webDAVConfig.Password {
-			http.Error(w, "WebDAV: need authorized!", http.StatusUnauthorized)
+		if username == "" || password == "" {
+			http.Error(w, "username == null or password == null", http.StatusUnauthorized)
 			return
 		}
 
+		if username != webDAVConfig.Username || password != webDAVConfig.Password {
+			http.Error(w, "username wrong or password wrong", http.StatusUnauthorized)
+			return
+		}
+
+		//show files of directory
 		if req.Method == "GET" && handleDirList(webDAVConfig.Handler.FileSystem, w, req, webDAVConfig.Handler.Prefix) {
 			return
 		}
 
 		webDAVConfig.Handler.ServeHTTP(w, req)
-
 	})
 
-	err := http.ListenAndServe(":8080", sMux)
+	err := http.ListenAndServe(":80", sMux)
 	if err != nil {
 		fmt.Println(err)
 	}
