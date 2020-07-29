@@ -1,15 +1,16 @@
 package main
 
 import (
+	"GoWebdav/model"
 	"fmt"
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
+	"golang.org/x/net/webdav"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
-
-	"golang.org/x/net/webdav"
 )
 
 func handleDirList(fs webdav.FileSystem, w http.ResponseWriter, req *http.Request, prefix string) bool {
@@ -19,11 +20,9 @@ func handleDirList(fs webdav.FileSystem, w http.ResponseWriter, req *http.Reques
 	path = strings.Replace(path, prefix, "/", 1)
 
 	f, err := fs.OpenFile(ctx, path, os.O_RDONLY, 0)
-
 	if err != nil {
 		return false
 	}
-
 	defer f.Close()
 
 	if fi, _ := f.Stat(); fi != nil && !fi.IsDir() {
@@ -71,26 +70,21 @@ func main() {
 
 	AppConfig.Load()
 
-	fmt.Println(AppConfig.dav)
-
 	davConfigs := strings.Split(AppConfig.dav, ";")
+
+	WebDAVConfigs := make([]*model.WebDAVConfig, 0)
 
 	for _, davConfig := range davConfigs {
 		davConfigArray := strings.Split(davConfig, ",")
-		fmt.Println(davConfigArray)
-
 		prefix := davConfigArray[0]
 		pathDir := davConfigArray[1]
 		username := davConfigArray[2]
 		password := davConfigArray[3]
 
-		fs := &webdav.Handler{
-			FileSystem: webdav.Dir("./TestDir"),
-			LockSystem: webdav.NewMemLS(),
-			Prefix:     "/dav1",
-		}
+		WebDAVConfig := &model.WebDAVConfig{}
+		WebDAVConfig.Init(prefix, pathDir, username, password)
+		WebDAVConfigs = append(WebDAVConfigs, WebDAVConfig)
 	}
-
 
 	sMux := http.NewServeMux()
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
@@ -103,16 +97,22 @@ func main() {
 			return
 		}
 
-		if username != "user" || password != "123456" {
+		webDAVConfig := model.WebDAVConfigFindOneByPrefix(WebDAVConfigs, parsePrefixFromURL(req.URL))
+		if webDAVConfig == nil {
+			http.NotFound(w, req)
+			return
+		}
+
+		if username != webDAVConfig.Username || password != webDAVConfig.Password {
 			http.Error(w, "WebDAV: need authorized!", http.StatusUnauthorized)
 			return
 		}
 
-		if req.Method == "GET" && handleDirList(fs.FileSystem, w, req, "/dav1") {
+		if req.Method == "GET" && handleDirList(webDAVConfig.Handler.FileSystem, w, req, webDAVConfig.Handler.Prefix) {
 			return
 		}
 
-		fs.ServeHTTP(w, req)
+		webDAVConfig.Handler.ServeHTTP(w, req)
 
 	})
 
@@ -120,4 +120,10 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+// /dav1/123.txt -> dav1
+func parsePrefixFromURL(url *url.URL) string {
+	u := fmt.Sprint(url)
+	return "/" + strings.Split(u, "/")[1]
 }
