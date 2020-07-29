@@ -69,7 +69,8 @@ func main() {
 	viper.SetConfigName("config")
 
 	AppConfig.Load()
-
+	fmt.Print("AppConfig.dav ")
+	fmt.Println(AppConfig.dav)
 	davConfigs := strings.Split(AppConfig.dav, ";")
 
 	WebDAVConfigs := make([]*model.WebDAVConfig, 0)
@@ -100,7 +101,29 @@ func main() {
 		webDAVConfig := model.WebDAVConfigFindOneByPrefix(WebDAVConfigs, parsePrefixFromURL(req.URL))
 
 		if webDAVConfig == nil {
-			http.NotFound(w, req)
+
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+			//index
+
+			_, err := fmt.Fprintf(w, "<pre>\n")
+			if err != nil {
+				fmt.Println(err)
+			}
+
+
+			for _ , config:=range WebDAVConfigs{
+				_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", config.Prefix+"/", config.Prefix)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+
+			_, err = fmt.Fprintf(w, "<pre>\n")
+			if err != nil {
+				fmt.Println(err)
+			}
+
 			return
 		}
 
