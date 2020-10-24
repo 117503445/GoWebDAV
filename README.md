@@ -46,6 +46,12 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 再根据前面的  -v /root/dir1:/root/dir1 就可以把物理机的 /root/dir1 完成映射关系，进行访问了。
 
+例外的
+
+> /dav1,/root/dir1,null,null
+
+即 用户名和密码 都为 null 时,不会进行密码验证,适合公开的文件分享.
+
 ## 背景介绍
 
 用于搭建基于 WebDAV 的文件共享服务器。

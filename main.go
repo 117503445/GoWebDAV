@@ -126,14 +126,18 @@ func main() {
 			return
 		}
 
-		if username == "" || password == "" {
-			http.Error(w, "username == null or password == null", http.StatusUnauthorized)
-			return
-		}
+		if webDAVConfig.Username != "null" && webDAVConfig.Password != "null" {
+			// 配置中的 用户名 密码 都为 null 时 不进行身份检查
+			// 不都为 null 进行身份检查
+			if username == "" || password == "" {
+				http.Error(w, "username missing or password missing", http.StatusUnauthorized)
+				return
+			}
 
-		if username != webDAVConfig.Username || password != webDAVConfig.Password {
-			http.Error(w, "username wrong or password wrong", http.StatusUnauthorized)
-			return
+			if username != webDAVConfig.Username || password != webDAVConfig.Password {
+				http.Error(w, "username wrong or password wrong", http.StatusUnauthorized)
+				return
+			}
 		}
 
 		//show files of directory
