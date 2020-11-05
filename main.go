@@ -90,14 +90,6 @@ func main() {
 	sMux := http.NewServeMux()
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 
-		username, password, ok := req.BasicAuth()
-
-		if !ok {
-			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
 		webDAVConfig := model.WebDAVConfigFindOneByPrefix(WebDAVConfigs, parsePrefixFromURL(req.URL))
 
 		if webDAVConfig == nil {
@@ -127,6 +119,14 @@ func main() {
 		}
 
 		if webDAVConfig.Username != "null" && webDAVConfig.Password != "null" {
+			username, password, ok := req.BasicAuth()
+
+			if !ok {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
 			// 配置中的 用户名 密码 都为 null 时 不进行身份检查
 			// 不都为 null 进行身份检查
 			if username == "" || password == "" {
