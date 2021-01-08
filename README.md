@@ -19,13 +19,13 @@
 ```sh
 docker rm go_webdav -f
 docker rmi 117503445/go_webdav
-docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1;/dav2,/root/dir2,user2,pass2" -p 80:80 --restart=always 117503445/go_webdav:latest
+docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false" -p 80:80 --restart=always 117503445/go_webdav:latest
 ```
 
 其中
 
 ```sh
--e dav="/dav1,/root/dir1,user1,pass1;/dav2,/root/dir2,user2,pass2"
+-e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"
 ```
 
 表示将配置字符串传入 Docker 镜像。
@@ -36,21 +36,25 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 使用分号将每个 WebDAV 服务配置分隔，也就是说上述字符串描述了 2 个服务，分别是
 
-> /dav1,/root/dir1,user1,pass1
+> /dav1,/root/dir1,user1,pass1,true
 
 和
 
-> /dav2,/root/dir2,user2,pass2
+> /dav2,/root/dir2,null,null,false
 
-其中以第一个服务为例，上述配置会在 /dav1 下挂载 镜像的 /root/dir1 目录，访问需要的用户名和密码分别为 user1 和 pass1 。
+第一个服务会在 /dav1 下挂载 镜像的 /root/dir1 目录，访问需要的用户名和密码分别为 user1 和 pass1 。
 
-再根据前面的  -v /root/dir1:/root/dir1 就可以把物理机的 /root/dir1 完成映射关系，进行访问了。
+再根据前面的  -v /root/dir1:/root/dir1 就可以和物理机的 /root/dir1 完成映射关系，进行访问了。
 
-例外的
+第 5 个参数 true 表示这是个只读的服务，只支持 GET，不支持 增删改。
 
-> /dav1,/root/dir1,null,null
+第二个服务会在 /dav2 下挂载 镜像的 /root/dir2 目录，访问需要的用户名和密码分别为 null 和 null，这时候表示不需要密码就可以访问这个服务了。
 
-即 用户名和密码 都为 null 时,不会进行密码验证,适合公开的文件分享.
+再根据前面的  -v /root/dir2:/root/dir2 就可以和物理机的 /root/dir2 完成映射关系，进行访问了。
+
+第 5 个参数 false 表示这是个非只读的服务，支持 增删改查。
+
+对于无保密性要求的文件分享，建议把账号密码设成 null null，再把 readonly 开成 True。
 
 ## 背景介绍
 
@@ -81,7 +85,11 @@ docker rm go_webdav -f
 docker rmi 117503445/go_webdav
 
 docker build -t 117503445/go_webdav . # 国外
-docker build -t 117503445/go_webdav -f Dockerfile_cn . #国内,启用 go 镜像
+docker build -t 117503445/go_webdav -f Dockerfile_cn . #国内,启用 goproxy.cn 镜像
 
 docker run -it --name go_webdav -d -e dav="/dav1,./TestDir1,user1,pass1;/dav2,./TestDir2,user2,pass2" -p 80:80 --restart=always 117503445/go_webdav:latest
 ```
+
+## 安全性
+
+使用 HTTP Basic Auth 进行验证，账号密码明文发送，可以说是毫无安全性。如果使用了密码，请务必用 Nginx 套一层 HTTPS 。

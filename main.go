@@ -76,14 +76,8 @@ func main() {
 	WebDAVConfigs := make([]*model.WebDAVConfig, 0)
 
 	for _, davConfig := range davConfigs {
-		davConfigArray := strings.Split(davConfig, ",")
-		prefix := davConfigArray[0]
-		pathDir := davConfigArray[1]
-		username := davConfigArray[2]
-		password := davConfigArray[3]
-
 		WebDAVConfig := &model.WebDAVConfig{}
-		WebDAVConfig.Init(prefix, pathDir, username, password)
+		WebDAVConfig.InitByConfigStr(davConfig)
 		WebDAVConfigs = append(WebDAVConfigs, WebDAVConfig)
 	}
 
@@ -119,6 +113,9 @@ func main() {
 		}
 
 		if webDAVConfig.Username != "null" && webDAVConfig.Password != "null" {
+			// 配置中的 用户名 密码 都为 null 时 不进行身份检查
+			// 不都为 null 进行身份检查
+
 			username, password, ok := req.BasicAuth()
 
 			if !ok {
@@ -127,8 +124,6 @@ func main() {
 				return
 			}
 
-			// 配置中的 用户名 密码 都为 null 时 不进行身份检查
-			// 不都为 null 进行身份检查
 			if username == "" || password == "" {
 				http.Error(w, "username missing or password missing", http.StatusUnauthorized)
 				return
@@ -140,11 +135,19 @@ func main() {
 			}
 		}
 
-		//show files of directory
+		if webDAVConfig.ReadOnly && req.Method != "GET" && req.Method != "OPTIONS" {
+			// ReadOnly
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			_, _ = w.Write([]byte("Readonly, Method " + req.Method + " Not Allowed"))
+			return
+		}
+
+		// show files of directory
 		if req.Method == "GET" && handleDirList(webDAVConfig.Handler.FileSystem, w, req, webDAVConfig.Handler.Prefix) {
 			return
 		}
 
+		// handle file
 		webDAVConfig.Handler.ServeHTTP(w, req)
 	})
 
