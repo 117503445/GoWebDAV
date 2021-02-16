@@ -135,7 +135,7 @@ func main() {
 			}
 		}
 
-		if webDAVConfig.ReadOnly && req.Method != "GET" && req.Method != "OPTIONS" {
+		if webDAVConfig.ReadOnly && req.Method != "GET" && req.Method != "OPTIONS" && req.Method != "PROPFIND"{
 			// ReadOnly
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			_, _ = w.Write([]byte("Readonly, Method " + req.Method + " Not Allowed"))
