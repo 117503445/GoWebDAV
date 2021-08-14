@@ -84,11 +84,18 @@ func main() {
 			}
 		}
 
-		if webDAVConfig.ReadOnly && req.Method != "GET" && req.Method != "OPTIONS" && req.Method != "PROPFIND" {
-			// ReadOnly
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			_, _ = w.Write([]byte("Readonly, Method " + req.Method + " Not Allowed"))
-			return
+		if webDAVConfig.ReadOnly {
+			allowMethods := []string{"GET", "OPTIONS", "PROPFIND", "HEAD"}
+			if !IsContain(allowMethods, req.Method) {
+				// ReadOnly
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				_, err := w.Write([]byte("Readonly, Method " + req.Method + " Not Allowed"))
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				return
+			}
 		}
 
 		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
@@ -146,4 +153,13 @@ func isDir(fs webdav.FileSystem, req *http.Request) bool {
 	}
 	fmt.Println(true)
 	return true
+}
+
+func IsContain(items []string, item string) bool {
+	for _, eachItem := range items {
+		if eachItem == item {
+			return true
+		}
+	}
+	return false
 }
