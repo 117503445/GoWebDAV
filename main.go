@@ -6,63 +6,12 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"golang.org/x/net/webdav"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 )
 
-func handleDirList(fs webdav.FileSystem, w http.ResponseWriter, req *http.Request, prefix string) bool {
-	ctx := context.Background()
-
-	path := req.URL.Path
-	path = strings.Replace(path, prefix, "/", 1)
-
-	f, err := fs.OpenFile(ctx, path, os.O_RDONLY, 0)
-	if err != nil {
-		return false
-	}
-	defer f.Close()
-
-	if fi, _ := f.Stat(); fi != nil && !fi.IsDir() {
-
-		return false
-
-	}
-
-	dirs, err := f.Readdir(-1)
-
-	if err != nil {
-		log.Print(w, "Error reading directory", http.StatusInternalServerError)
-		return false
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	_, err = fmt.Fprintf(w, "<pre>\n")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	for _, d := range dirs {
-		name := d.Name()
-		if d.IsDir() {
-			name += "/"
-		}
-		_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", prefix+"/"+path+"/"+name, name)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-
-	_, err = fmt.Fprintf(w, "</pre>\n")
-	if err != nil {
-		fmt.Println(err)
-	}
-	return true
-
-}
 func main() {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -135,15 +84,28 @@ func main() {
 			}
 		}
 
-		if webDAVConfig.ReadOnly && req.Method != "GET" && req.Method != "OPTIONS" && req.Method != "PROPFIND"{
+		if webDAVConfig.ReadOnly && req.Method != "GET" && req.Method != "OPTIONS" && req.Method != "PROPFIND" {
 			// ReadOnly
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			_, _ = w.Write([]byte("Readonly, Method " + req.Method + " Not Allowed"))
 			return
 		}
 
+		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
+			_, err := w.Write([]byte("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>GoWebDAV</title>\n</head>\n<body>\n    \n</body>\n<script>\n    [\"https://cdn.jsdelivr.net/gh/dom111/webdav-js/assets/css/style-min.css\",\"https://cdn.jsdelivr.net/gh/dom111/webdav-js/src/webdav-min.js\"].forEach((function(e,s){/css$/.test(e)?((s=document.createElement(\"link\")).href=e,s.rel=\"stylesheet\"):(s=document.createElement(\"script\")).src=e,document.head.appendChild(s)}));\n</script>\n</html>"))
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			return
+		}
+
 		// show files of directory
-		if req.Method == "GET" && handleDirList(webDAVConfig.Handler.FileSystem, w, req, webDAVConfig.Handler.Prefix) {
+		//if req.Method == "GET" && handleDirList(webDAVConfig.Handler.FileSystem, w, req, webDAVConfig.Handler.Prefix) {
+		//	return
+		//}
+
+		if req.Method == "HEAD" {
 			return
 		}
 
@@ -161,4 +123,27 @@ func main() {
 func parsePrefixFromURL(url *url.URL) string {
 	u := fmt.Sprint(url)
 	return "/" + strings.Split(u, "/")[1]
+}
+
+func isDir(fs webdav.FileSystem, req *http.Request) bool {
+	ctx := context.Background()
+	path := req.URL.Path
+	//fmt.Println(path)
+	s := strings.Split(path, "/")[2:]
+	//fmt.Println(s)
+	path = strings.Join(s, "/")
+	//fmt.Println(path)
+
+	f, err := fs.OpenFile(ctx, path, os.O_RDONLY, 0)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	if fi, _ := f.Stat(); fi != nil && !fi.IsDir() {
+		fmt.Println(false)
+		return false
+	}
+	fmt.Println(true)
+	return true
 }

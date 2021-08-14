@@ -17,9 +17,7 @@
 ## 运行方法
 
 ```sh
-docker rm go_webdav -f
-docker rmi 117503445/go_webdav
-docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false" -p 80:80 --restart=always 117503445/go_webdav:latest
+docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false" -p 80:80 --restart=unless-stopped 117503445/go_webdav
 ```
 
 其中
@@ -30,7 +28,7 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 表示将配置字符串传入 Docker 镜像。
 
-然后在浏览器中观察 <http://localhost/dav1> 和 <http://localhost/dav2> 可以映射本地文件了。
+然后在浏览器中打开 <http://localhost/dav1> 和 <http://localhost/dav2>，就能正常以 webdav 的形式 访问磁盘文件了。
 
 ## 配置字符串说明
 
@@ -74,22 +72,29 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 ## 本地调试
 
-把 config.yml.example 重命名为 config.yml， 在 config.yml 文件中配置，再按照常规操作运行
+把 config.yml.example 重命名为 config.yml， 在 config.yml 文件中配置
 
-使用了分层构建，在 build 层 通过 go build 构筑了 可执行文件 app，再在 prod 层 进行运行。如果以后需要修改配置文件的结构，也需要修改 Dockerfile。
+`go run .`
 
 ## 本地 Docker 运行
 
-```sh
-docker rm go_webdav -f
-docker rmi 117503445/go_webdav
+使用了分层构建，在 build 层 通过 go build 构筑了 可执行文件 app，再在 prod 层 进行运行。如果以后需要修改配置文件的结构，也需要修改 Dockerfile。
 
+```sh
 docker build -t 117503445/go_webdav . # 国外
 docker build -t 117503445/go_webdav -f Dockerfile_cn . #国内,启用 goproxy.cn 镜像
 
-docker run -it --name go_webdav -d -e dav="/dav1,./TestDir1,user1,pass1;/dav2,./TestDir2,user2,pass2" -p 80:80 --restart=always 117503445/go_webdav:latest
+docker run -it --name go_webdav -d -e dav="/dav1,./TestDir1,user1,pass1;/dav2,./TestDir2,user2,pass2" -p 80:80 --restart=unless-stopped 117503445/go_webdav
 ```
 
 ## 安全性
 
-使用 HTTP Basic Auth 进行验证，账号密码明文发送，可以说是毫无安全性。如果使用了密码，请务必用 Nginx 套一层 HTTPS 。
+使用 HTTP Basic Auth 进行验证，账号密码明文发送，毫无安全性可言。如果涉及重要文件、重要密码，请务必用 Nginx 等网关套一层 HTTPS 。
+
+## 性能
+
+性能有多高? 还没测试出上限，反正网络带宽肯定能跑满。开发时本机传文件，pia 的一下 1G 的文件就传好了。
+
+## THANKS
+
+<https://github.com/dom111/webdav-js> 提供了前端支持
