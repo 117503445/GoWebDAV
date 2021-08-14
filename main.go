@@ -1,7 +1,7 @@
 package main
 
 import (
-	"GoWebdav/model"
+	"GoWebDAV/model"
 	"fmt"
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"

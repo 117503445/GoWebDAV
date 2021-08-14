@@ -1,4 +1,4 @@
-FROM golang:1.14 as build
+FROM golang:1.16 as build
 ENV GO111MODULE on
 WORKDIR /go/cache
 ADD go.mod .
