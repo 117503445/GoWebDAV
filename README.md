@@ -16,6 +16,13 @@
 
 ## 运行方法
 
+### bin
+
+去 <https://github.com/117503445/GoWebDAV/releases> 下载最新的 二进制文件
+然后 `./gowebdav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
+
+### Docker
+
 ```sh
 docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false" -p 80:80 --restart=unless-stopped 117503445/go_webdav
 ```
