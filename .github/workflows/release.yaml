@@ -10,11 +10,15 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-go@v2
         with:
-          go-version: "1.16.4"
+          go-version: "1.18"
 
       - run: go build -o gowebdav_linux_amd64 .
       - run: CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o gowebdav_windows_amd64.exe .
       - run: CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o gowebdav_darwin_amd64 .
+
+      - run: CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o gowebdav_linux_arm64 .
+      - run: CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -o gowebdav_windows_arm64.exe .
+      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o gowebdav_darwin_arm64 .
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -23,5 +27,8 @@ jobs:
             gowebdav_linux_amd64
             gowebdav_windows_amd64.exe
             gowebdav_darwin_amd64
+            gowebdav_linux_arm64
+            gowebdav_windows_arm64.exe
+            gowebdav_darwin_arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
