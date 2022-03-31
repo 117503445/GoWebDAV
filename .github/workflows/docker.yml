@@ -5,6 +5,8 @@ on:
     branches:
       - 'master'
 
+# TODO: mutli arch
+
 jobs:
   docker:
     runs-on: ubuntu-latest
