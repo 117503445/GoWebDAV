@@ -27,8 +27,16 @@ func main() {
 	for _, davConfig := range davConfigs {
 		WebDAVConfig := &model.WebDAVConfig{}
 		WebDAVConfig.InitByConfigStr(davConfig)
-		WebDAVConfigs = append(WebDAVConfigs, WebDAVConfig)
+		if WebDAVConfig.Prefix == "/static" {
+			fmt.Println("'static' prefix is not allowed")
+		} else {
+			WebDAVConfigs = append(WebDAVConfigs, WebDAVConfig)
+		}
 	}
+
+	w := &model.WebDAVConfig{}
+	w.InitByConfigStr("/static,./static,null,null,true")
+	WebDAVConfigs = append(WebDAVConfigs, w)
 
 	sMux := http.NewServeMux()
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
@@ -47,6 +55,9 @@ func main() {
 			}
 
 			for _, config := range WebDAVConfigs {
+				if config.Prefix == "/static" {
+					continue
+				}
 				_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", config.Prefix+"/", config.Prefix)
 				if err != nil {
 					fmt.Println(err)
@@ -99,7 +110,7 @@ func main() {
 		}
 
 		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
-			_, err := w.Write([]byte("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>GoWebDAV</title>\n</head>\n<body>\n    \n</body>\n<script>\n    [\"https://cdn.jsdelivr.net/gh/dom111/webdav-js/assets/css/style-min.css\",\"https://cdn.jsdelivr.net/gh/dom111/webdav-js/src/webdav-min.js\"].forEach((function(e,s){/css$/.test(e)?((s=document.createElement(\"link\")).href=e,s.rel=\"stylesheet\"):(s=document.createElement(\"script\")).src=e,document.head.appendChild(s)}));\n</script>\n</html>"))
+			_, err := w.Write([]byte("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>GoWebDAV</title>\n</head>\n<body>\n    \n</body>\n<script>\n    [\"/static/style-min.css\",\"/static/webdav-min.js\"].forEach((function(e,s){/css$/.test(e)?((s=document.createElement(\"link\")).href=e,s.rel=\"stylesheet\"):(s=document.createElement(\"script\")).src=e,document.head.appendChild(s)}));\n</script>\n</html>"))
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -148,10 +159,8 @@ func isDir(fs webdav.FileSystem, req *http.Request) bool {
 	defer f.Close()
 
 	if fi, _ := f.Stat(); fi != nil && !fi.IsDir() {
-		fmt.Println(false)
 		return false
 	}
-	fmt.Println(true)
 	return true
 }
 

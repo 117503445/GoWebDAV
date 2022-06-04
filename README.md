@@ -6,9 +6,9 @@
 
 - 基于 Golang 实现，性能高。
 
-- 最终编译为单文件，不需要 Apache 等环境，更加稳定。
+- 最终编译为单二进制文件，不需要 Apache 等环境，更加稳定。
 
-- 支持浏览器在线访问。
+- 支持浏览器访问。
 
 - 可以在同个端口下启用多个 WebDAV 服务，各自有不同的挂载目录、用户名、密码。
 
@@ -41,25 +41,27 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 使用分号将每个 WebDAV 服务配置分隔，也就是说上述字符串描述了 2 个服务，分别是
 
-> /dav1,/root/dir1,user1,pass1,true
+> /dav1,/root/dir1,user1,pass1,false
 
 和
 
-> /dav2,/root/dir2,null,null,false
+> /dav2,/root/dir2,null,null,true
 
 第一个服务会在 /dav1 下挂载 镜像的 /root/dir1 目录，访问需要的用户名和密码分别为 user1 和 pass1 。
 
 再根据前面的  -v /root/dir1:/root/dir1 就可以和物理机的 /root/dir1 完成映射关系，进行访问了。
 
-第 5 个参数 true 表示这是个只读的服务，只支持 GET，不支持 增删改。
+第 5 个参数 false 表示这是个非只读的服务，支持 增删改查。
 
 第二个服务会在 /dav2 下挂载 镜像的 /root/dir2 目录，访问需要的用户名和密码分别为 null 和 null，这时候表示不需要密码就可以访问这个服务了。
 
 再根据前面的  -v /root/dir2:/root/dir2 就可以和物理机的 /root/dir2 完成映射关系，进行访问了。
 
-第 5 个参数 false 表示这是个非只读的服务，支持 增删改查。
+第 5 个参数 true 表示这是个只读的服务，只支持 GET，不支持 增删改。
 
-对于无保密性要求的文件分享，建议把账号密码设成 null null，再把 readonly 开成 True。
+对于无保密性要求的文件分享，建议使用这种方式。
+
+注意，第一个参数不能为 "/static".
 
 ## 背景介绍
 
@@ -88,19 +90,13 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 使用了分层构建，在 build 层 通过 go build 构筑了 可执行文件 app，再在 prod 层 进行运行。如果以后需要修改配置文件的结构，也需要修改 Dockerfile。
 
 ```sh
-docker build -t 117503445/go_webdav . # 国外
-docker build -t 117503445/go_webdav -f Dockerfile_cn . #国内,启用 goproxy.cn 镜像
-
-docker run -it --name go_webdav -d -e dav="/dav1,./TestDir1,user1,pass1;/dav2,./TestDir2,user2,pass2" -p 80:80 --restart=unless-stopped 117503445/go_webdav
+docker build -t 117503445/go_webdav .
+docker run --name go_webdav -d -v ${PWD}/TestDir1:/root/TestDir1 -v ${PWD}/TestDir2:/root/TestDir2 -e dav="/dav1,/root/TestDir1,user1,pass1,false;/dav2,/root/TestDir2,user2,pass2,true" -p 80:80 --restart=unless-stopped 117503445/go_webdav
 ```
 
 ## 安全性
 
 使用 HTTP Basic Auth 进行验证，账号密码明文发送，毫无安全性可言。如果涉及重要文件、重要密码，请务必用 Nginx 等网关套一层 HTTPS 。
-
-## 性能
-
-性能有多高? 还没测试出上限，反正网络带宽肯定能跑满。开发时本机传文件，pia 的一下 1G 的文件就传好了。
 
 ## THANKS
 
