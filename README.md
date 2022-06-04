@@ -2,24 +2,27 @@
 
 > A Simple, Powerful WebDAV Server By Golang.
 
-## 特性
+[中文](./README_CN.md)
 
-- 基于 Golang 实现，性能高。
+## feature
 
-- 最终编译为单二进制文件，不需要 Apache 等环境，更加稳定。
+- Based on Golang implementation, high performance
 
-- 支持浏览器访问。
+- Finally compiled into a single binary file, no need for Apache and other environments, more stable
 
-- 可以在同个端口下启用多个 WebDAV 服务，各自有不同的挂载目录、用户名、密码。
+- Support browser access
 
-- Docker 支持良好。
+- Multiple WebDAV services can be enabled under the same port, each with a different mount directory, user name, and password
 
-## 运行方法
+- Docker is well supported
+
+## quickstart
 
 ### bin
 
-去 <https://github.com/117503445/GoWebDAV/releases> 下载最新的 二进制文件
-然后 `./gowebdav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
+Go to <https://github.com/117503445/GoWebDAV/releases> to download the latest binaries.
+
+Then run `./gowebdav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
 
 ### Docker
 
@@ -27,77 +30,83 @@
 docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false" -p 80:80 --restart=unless-stopped 117503445/go_webdav
 ```
 
-其中
-
 ```sh
 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"
 ```
 
-表示将配置字符串传入 Docker 镜像。
+Indicates passing a configuration string into the Docker image.
 
-然后在浏览器中打开 <http://localhost/dav1> 和 <http://localhost/dav2>，就能正常以 webdav 的形式 访问磁盘文件了。
+Then open <http://localhost/dav1> and <http://localhost/dav2> in the browser or webdav client like [raidrive](https://www.raidrive.com/).
 
-## 配置字符串说明
+## Configuration String
 
-使用分号将每个 WebDAV 服务配置分隔，也就是说上述字符串描述了 2 个服务，分别是
+Use a semicolon to separate each WebDAV service configuration, which means that the above string describes 2 services, which are
 
 > /dav1,/root/dir1,user1,pass1,false
 
-和
+and
 
 > /dav2,/root/dir2,null,null,true
 
-第一个服务会在 /dav1 下挂载 镜像的 /root/dir1 目录，访问需要的用户名和密码分别为 user1 和 pass1 。
+Use a semicolon to separate each WebDAV service configuration, which means that the above string describes 2 services, which are
 
-再根据前面的  -v /root/dir1:/root/dir1 就可以和物理机的 /root/dir1 完成映射关系，进行访问了。
+> /dav1,/root/dir1,user1,pass1,false
 
-第 5 个参数 false 表示这是个非只读的服务，支持 增删改查。
+and
 
-第二个服务会在 /dav2 下挂载 镜像的 /root/dir2 目录，访问需要的用户名和密码分别为 null 和 null，这时候表示不需要密码就可以访问这个服务了。
+> /dav2,/root/dir2,null,null,true
 
-再根据前面的  -v /root/dir2:/root/dir2 就可以和物理机的 /root/dir2 完成映射关系，进行访问了。
+The first service will mount the `/root/dir1` directory of the Docker image under `/dav1`. The required username and password for access are `user1` and `pass1` respectively.
 
-第 5 个参数 true 表示这是个只读的服务，只支持 GET，不支持 增删改。
+Then, according to the previous `-v /root/dir1:/root/dir1`, the mapping relationship with `/root/dir1` of the physical machine can be completed and accessed.
 
-对于无保密性要求的文件分享，建议使用这种方式。
+The fifth parameter `false` indicates that this is a non-read-only service that supports addition, deletion, modification and query.
 
-注意，第一个参数不能为 "/static".
+The second service will mount the `/root/dir2` directory of the Docker image under `/dav2`. The user name and password required for access are `null` and `null` respectively. At this time, it means that the service can be accessed without a password. .
 
-## 背景介绍
+Then according to the previous `-v /root/dir2:/root/dir2`, you can complete the mapping relationship with `/root/dir2` of the physical machine and access it.
 
-用于搭建基于 WebDAV 的文件共享服务器。
+The fifth parameter `true` indicates that this is a read-only service, only supports GET, does not support additions, deletions and modifications.
 
-### 使用 WebDAV 的原因
+This method is recommended for file sharing without confidentiality requirements.
 
-1. Samba 在 Windows 的客户端上使用不方便，难以使用非默认端口。
+Note that the first argument cannot be `/static`.
 
-2. FTP 挂载麻烦。
+## Background introduction
 
-3. NextCloud 太重了，而且难以实现 共享出来服务器上的文件。
+`GoWebdav` is used to build a WebDAV-based file sharing server.
 
-### 再造一个 WebDAV Server 轮子的原因
+### Reasons to use WebDAV
 
-没看到能满足上述特性的服务端实现。
+1. Samba is inconvenient to use on Windows clients, and it is difficult to use non-default ports.
 
-## 本地调试
+2. FTP mount trouble.
 
-把 config.yml.example 重命名为 config.yml， 在 config.yml 文件中配置
+3. NextCloud is too heavy and difficult to share files on the server.
+
+### Reasons to reinvent the wheel of a WebDAV Server
+
+I haven't seen a server implementation that can meet the above characteristics.
+
+## local debugging
+
+Rename `config.yml.example` to `config.yml`, configure in `config.yml` file
 
 `go run .`
 
-## 本地 Docker 运行
+## Local Docker run
 
-使用了分层构建，在 build 层 通过 go build 构筑了 可执行文件 app，再在 prod 层 进行运行。如果以后需要修改配置文件的结构，也需要修改 Dockerfile。
+Using a layered build, the executable app is built through `go build` in the build layer, and then run in the prod layer. If you need to modify the structure of the configuration file later, you will also need to modify the Dockerfile.
 
-```sh
+````sh
 docker build -t 117503445/go_webdav .
-docker run --name go_webdav -d -v ${PWD}/TestDir1:/root/TestDir1 -v ${PWD}/TestDir2:/root/TestDir2 -e dav="/dav1,/root/TestDir1,user1,pass1,false;/dav2,/root/TestDir2,user2,pass2,true" -p 80:80 --restart=unless-stopped 117503445/go_webdav
-```
+docker run --name go_webdav -d -v ${PWD}/TestDir1:/root/TestDir1 -v ${PWD}/TestDir2:/root/TestDir2 -e dav="/dav1,/root/TestDir1,user1,pass1 ,false;/dav2,/root/TestDir2,user2,pass2,true" -p 80:80 --restart=unless-stopped 117503445/go_webdav
+````
 
-## 安全性
+## safety
 
-使用 HTTP Basic Auth 进行验证，账号密码明文发送，毫无安全性可言。如果涉及重要文件、重要密码，请务必用 Nginx 等网关套一层 HTTPS 。
+HTTP Basic Auth is used for authentication, and the account password is sent in clear text, which has no security at all. If important files or passwords are involved, be sure to use a gateway such as Nginx or Traefik to provide HTTPS.
 
 ## THANKS
 
-<https://github.com/dom111/webdav-js> 提供了前端支持
+<https://github.com/dom111/webdav-js> provides front-end support
