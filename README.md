@@ -1,6 +1,6 @@
 # GoWebdav
 
-> A Simple, Powerful WebDAV Server By Golang.
+> a lightweight, easy-to-use WebDAV server.
 
 [中文](./README_CN.md)
 

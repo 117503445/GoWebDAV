@@ -1,6 +1,6 @@
 # GoWebdav
 
-> A Simple, Powerful WebDAV Server By Golang.
+> 一个轻量级的、易于使用的 WebDAV 服务器。
 
 ## 特性
 
@@ -14,7 +14,7 @@
 
 - Docker 支持良好。
 
-## 运行方法
+## 快速开始
 
 ### bin
 
@@ -36,7 +36,7 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 表示将配置字符串传入 Docker 镜像。
 
-然后在浏览器中打开 <http://localhost/dav1> 和 <http://localhost/dav2>，就能正常以 webdav 的形式 访问磁盘文件了。
+然后在浏览器中打开 <http://localhost/dav1> 和 <http://localhost/dav2>，就能正常以 WebDAV 的形式 访问磁盘文件了。
 
 ## 配置字符串说明
 
