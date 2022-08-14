@@ -22,7 +22,7 @@
 
 Go to <https://github.com/117503445/GoWebDAV/releases> to download the latest binaries.
 
-Then run `./gowebdav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
+Then run `./gowebdav --dav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
 
 ### Docker
 
@@ -88,7 +88,7 @@ Note that the first argument cannot be `/static`.
 
 I haven't seen a server implementation that can meet the above characteristics.
 
-## local debugging
+## Local debugging
 
 Rename `config.yml.example` to `config.yml`, configure in `config.yml` file
 
@@ -103,10 +103,10 @@ docker build -t 117503445/go_webdav .
 docker run --name go_webdav -d -v ${PWD}/TestDir1:/root/TestDir1 -v ${PWD}/TestDir2:/root/TestDir2 -e dav="/dav1,/root/TestDir1,user1,pass1 ,false;/dav2,/root/TestDir2,user2,pass2,true" -p 80:80 --restart=unless-stopped 117503445/go_webdav
 ````
 
-## safety
+## Safety
 
 HTTP Basic Auth is used for authentication, and the account password is sent in clear text, which has no security at all. If important files or passwords are involved, be sure to use a gateway such as Nginx or Traefik to provide HTTPS.
 
-## THANKS
+## Acknowledgments
 
 <https://github.com/dom111/webdav-js> provides front-end support

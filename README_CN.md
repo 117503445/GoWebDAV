@@ -20,7 +20,7 @@
 
 去 <https://github.com/117503445/GoWebDAV/releases> 下载最新的二进制文件
 
-然后运行 `./gowebdav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
+然后运行 `./gowebdav --dav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
 
 ### Docker
 
