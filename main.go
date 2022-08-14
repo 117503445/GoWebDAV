@@ -1,16 +1,22 @@
 package main
 
 import (
-	"GoWebDAV/model"
+	_ "embed"
 	"fmt"
-	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"golang.org/x/net/webdav"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"GoWebDAV/model"
+
+	"github.com/spf13/viper"
 )
+
+//go:embed static/index.html
+var indexHTML string
 
 func main() {
 	viper.SetConfigType("yaml")
@@ -27,15 +33,11 @@ func main() {
 	for _, davConfig := range davConfigs {
 		WebDAVConfig := &model.WebDAVConfig{}
 		WebDAVConfig.InitByConfigStr(davConfig)
-		if WebDAVConfig.Prefix == "/static" {
-			fmt.Println("'static' prefix is not allowed")
-		} else {
-			WebDAVConfigs = append(WebDAVConfigs, WebDAVConfig)
-		}
+
+		WebDAVConfigs = append(WebDAVConfigs, WebDAVConfig)
 	}
 
 	w := &model.WebDAVConfig{}
-	w.InitByConfigStr("/static,./static,null,null,true")
 	WebDAVConfigs = append(WebDAVConfigs, w)
 
 	sMux := http.NewServeMux()
@@ -55,9 +57,6 @@ func main() {
 			}
 
 			for _, config := range WebDAVConfigs {
-				if config.Prefix == "/static" {
-					continue
-				}
 				_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", config.Prefix+"/", config.Prefix)
 				if err != nil {
 					fmt.Println(err)
@@ -110,18 +109,14 @@ func main() {
 		}
 
 		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
-			_, err := w.Write([]byte("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>GoWebDAV</title>\n</head>\n<body>\n    \n</body>\n<script>\n    [\"/static/style-min.css\",\"/static/webdav-min.js\"].forEach((function(e,s){/css$/.test(e)?((s=document.createElement(\"link\")).href=e,s.rel=\"stylesheet\"):(s=document.createElement(\"script\")).src=e,document.head.appendChild(s)}));\n</script>\n</html>"))
+			fmt.Println(indexHTML)
+			_, err := w.Write([]byte(indexHTML))
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
 			return
 		}
-
-		// show files of directory
-		//if req.Method == "GET" && handleDirList(webDAVConfig.Handler.FileSystem, w, req, webDAVConfig.Handler.Prefix) {
-		//	return
-		//}
 
 		if req.Method == "HEAD" {
 			return
@@ -131,6 +126,7 @@ func main() {
 		webDAVConfig.Handler.ServeHTTP(w, req)
 	})
 
+	fmt.Println("start listen on :80")
 	err := http.ListenAndServe(":80", sMux)
 	if err != nil {
 		fmt.Println(err)
