@@ -47,7 +47,7 @@ func main() {
 
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-			//index
+			// index
 
 			_, err := fmt.Fprintf(w, "<pre>\n")
 			if err != nil {
