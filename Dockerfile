@@ -10,4 +10,4 @@ FROM alpine as prod
 EXPOSE 80
 WORKDIR /root
 COPY --from=build /go/release/app app
-ENTRYPOINT ./app --dav=$dav
+CMD ./app --dav=$dav
