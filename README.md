@@ -48,14 +48,6 @@ and
 
 > /dav2,/root/dir2,null,null,true
 
-Use a semicolon to separate each WebDAV service configuration, which means that the above string describes 2 services, which are
-
-> /dav1,/root/dir1,user1,pass1,false
-
-and
-
-> /dav2,/root/dir2,null,null,true
-
 The first service will mount the `/root/dir1` directory of the Docker image under `/dav1`. The required username and password for access are `user1` and `pass1` respectively.
 
 Then, according to the previous `-v /root/dir1:/root/dir1`, the mapping relationship with `/root/dir1` of the physical machine can be completed and accessed.
