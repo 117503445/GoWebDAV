@@ -1,9 +1,9 @@
 name: Github Release
 
 on:
- push:
-   tags:
-     - "*"
+  push:
+    tags:
+      - "*"
 
 on: create
 
