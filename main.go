@@ -108,7 +108,6 @@ func main() {
 		}
 
 		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
-			fmt.Println(indexHTML)
 			_, err := w.Write([]byte(indexHTML))
 			if err != nil {
 				fmt.Println(err)
