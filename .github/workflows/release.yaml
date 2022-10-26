@@ -2,7 +2,8 @@ name: Github Release
 
 on:
   push:
-
+    branches:
+      - "master"
 
 jobs:
   release:
