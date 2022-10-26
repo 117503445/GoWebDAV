@@ -1,6 +1,6 @@
 # GoWebdav
 
-> a lightweight, easy-to-use WebDAV server.
+> Share local files with WebDAV, lightweight and very easy to use.
 
 [中文](./README_CN.md)
 
@@ -22,9 +22,42 @@
 
 Go to <https://github.com/117503445/GoWebDAV/releases> to download the latest binaries.
 
-Then run `./gowebdav --dav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
+Then run `. /gowebdav`
+
+GoWebDAV will automatically create the example file under the `./data` path with the following file structure
+
+```sh
+> tree ./data
+./data
+├── public-writable
+│ └── 1.txt
+├── public-readonly
+│ └── 2.txt
+└── private-writable
+    └── 3.txt
+```
+
+Visit <http://localhost:80> with your browser and you will see 3 different GoWebDAV services.
+
+![index](./assets/index.png)
+
+where <http://localhost:80/public-writable> is the `public-writable` service that maps the local `./data/public-writable` folder. It is Anonymizable and writable. You can view the contents of the file in the browser, as well as perform operations such as uploading and deleting.
+
+![public-writable](./assets/public-writable.png)
+
+<http://localhost:80/public-readonly> is the `public-readonly` service that maps the local `./data/public-readonly` folder. It is Anonymizable and read-only. You can view the contents of the file in your browser, but you cannot upload, delete, etc.
+
+![public-readonly](./assets/public-readonly.png)
+
+<http://localhost:80/private-writable> is the `private-writable` service that maps the local `./data/private-writable` folder. It is user-authenticated and writable. After logging in with `user1` and `pass1`, you can view the contents of the files in the browser, as well as upload, delete, etc.
+
+![private-writable](./assets/private-writable.png)
+
+The `dav` parameter can also be specified to configure the local path, user authentication, read-only, etc. properties of the WebDAV service, as described in the *Configuration Strings Description* section. When `dav` is not specified, the default `dav` parameter used by GoWebDAV is `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false`.
 
 ### Docker
+
+The local file paths to be shared are `/root/dir1` and `/root/dir2`.
 
 ```sh
 docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false" -p 80:80 --restart=unless-stopped 117503445/go_webdav
@@ -40,7 +73,7 @@ Then open <http://localhost/dav1> and <http://localhost/dav2> in the browser or 
 
 ## Configuration String
 
-Use a semicolon to separate each WebDAV service configuration, which means that the above string describes 2 services, which are
+Use a semicolon to separate each WebDAV service configuration, which means that `"/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"` describes 2 services, which are
 
 > /dav1,/root/dir1,user1,pass1,false
 
@@ -76,9 +109,7 @@ Note that the first argument cannot be `/static`.
 
 3. NextCloud is too heavy and difficult to share files on the server.
 
-### Reasons to reinvent the wheel of a WebDAV Server
-
-I haven't seen a server implementation that can meet the above characteristics.
+Because I didn't see a server-side implementation that could meet the above features, this project recreated a WebDAV Server.
 
 ## Local debugging
 
@@ -86,7 +117,7 @@ Rename `config.yml.example` to `config.yml`, configure in `config.yml` file
 
 `go run .`
 
-## Local Docker run
+## Local Docker build
 
 Using a layered build, the executable app is built through `go build` in the build layer, and then run in the prod layer. If you need to modify the structure of the configuration file later, you will also need to modify the Dockerfile.
 
