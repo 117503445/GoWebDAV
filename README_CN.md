@@ -1,6 +1,6 @@
 # GoWebdav
 
-> 一个轻量级的、易于使用的 WebDAV 服务器。
+> 使用 WebDAV 分享本地文件，轻量级的、易于使用的
 
 ## 特性
 
@@ -20,9 +20,42 @@
 
 去 <https://github.com/117503445/GoWebDAV/releases> 下载最新的二进制文件
 
-然后运行 `./gowebdav --dav "/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"`
+然后运行 `./gowebdav`
+
+GoWebDAV 会自动在 `./data` 路径下创建示例文件，文件结构如下
+
+```sh
+> tree ./data
+./data
+├── public-writable
+│   └── 1.txt
+├── public-readonly
+│   └── 2.txt
+└── private-writable
+    └── 3.txt
+```
+
+使用浏览器访问 <http://localhost:80>，就可以看到 3 个不同的 GoWebDAV 服务了。
+
+![index](./assets/index.png)
+
+其中 <http://localhost:80/public-writable> 是 `public-writable` 服务，映射了本地的 `./data/public-writable` 文件夹。它是无用户验证的、可写的。可以在浏览器中查看文件内容，也可以进行上传、删除等操作。
+
+![public-writable](./assets/public-writable.png)
+
+<http://localhost:80/public-readonly> 是 `public-readonly` 服务，映射了本地的 `./data/public-readonly` 文件夹。它是无用户验证的、只读的。可以在浏览器中查看文件内容，但不可以进行上传、删除等操作。
+
+![public-readonly](./assets/public-readonly.png)
+
+<http://localhost:80/private-writable> 是 `private-writable` 服务，映射了本地的 `./data/private-writable` 文件夹。它是有用户验证的、可写的。在使用 `user1` 和 `pass1` 登录以后，可以在浏览器中查看文件内容，也可以进行上传、删除等操作。
+
+![private-writable](./assets/private-writable.png)
+
+也可以指定 `dav` 参数来配置 WebDAV 服务的本地路径、用户验证、是否只读等属性，详情见 *配置字符串说明* 章节。在不指定 `dav` 时，GoWebDAV 使用的默认 `dav` 参数是 `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false`。
 
 ### Docker
+
+准备分享的本地文件路径为 `/root/dir1` 和 `/root/dir2`。
 
 ```sh
 docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/dir2 -e dav="/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false" -p 80:80 --restart=unless-stopped 117503445/go_webdav
@@ -40,7 +73,7 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 ## 配置字符串说明
 
-使用分号将每个 WebDAV 服务配置分隔，也就是说上述字符串描述了 2 个服务，分别是
+使用分号将每个 WebDAV 服务配置分隔，也就是说 `"/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"` 描述了 2 个服务，分别是
 
 > /dav1,/root/dir1,user1,pass1,false
 
@@ -76,17 +109,15 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 3. NextCloud 太重了，而且难以实现 共享出来服务器上的文件。
 
-### 再造一个 WebDAV Server 轮子的原因
-
-没看到能满足上述特性的服务端实现。
+因为没看到能满足上述特性的服务端实现，本项目再造了一个 WebDAV Server 轮子。
 
 ## 本地调试
 
-把 `config.yml.example` 重命名为 `config.yml`， 在 `config.yml` 文件中配置
+把 `config.yml.example` 重命名为 `config.yml`， 在 `config.yml` 文件中修改配置
 
 `go run .`
 
-## 本地 Docker 运行
+## 本地 Docker 构建
 
 使用了分层构建，在 build 层 通过 `go build` 构筑了 可执行文件 app，再在 prod 层 进行运行。如果以后需要修改配置文件的结构，也需要修改 Dockerfile。
 
@@ -97,7 +128,7 @@ docker run --name go_webdav -d -v ${PWD}/TestDir1:/root/TestDir1 -v ${PWD}/TestD
 
 ## 安全性
 
-使用 HTTP Basic Auth 进行验证，账号密码明文发送，毫无安全性可言。如果涉及重要文件、重要密码，请务必用 Nginx 等网关套一层 HTTPS 。
+使用 HTTP Basic Auth 进行验证，账号密码明文发送，毫无安全性可言。如果涉及重要文件、重要密码，请务必用 Nginx 或 Traefik 等网关套一层 HTTPS 。
 
 ## THANKS
 

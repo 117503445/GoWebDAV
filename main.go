@@ -24,8 +24,7 @@ func main() {
 	viper.SetConfigName("config")
 
 	AppConfig.Load()
-	fmt.Print("AppConfig.dav ")
-	fmt.Println(AppConfig.dav)
+	fmt.Printf("dav = %s\n", AppConfig.dav)
 	davConfigs := strings.Split(AppConfig.dav, ";")
 
 	WebDAVConfigs := make([]*model.WebDAVConfig, 0)
@@ -109,7 +108,6 @@ func main() {
 		}
 
 		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
-			fmt.Println(indexHTML)
 			_, err := w.Write([]byte(indexHTML))
 			if err != nil {
 				fmt.Println(err)
@@ -126,8 +124,8 @@ func main() {
 		webDAVConfig.Handler.ServeHTTP(w, req)
 	})
 
-	fmt.Println("start listen on :80")
-	err := http.ListenAndServe(":80", sMux)
+	fmt.Println("start listen on http://0.0.0.0:80")
+	err := http.ListenAndServe("0.0.0.0:80", sMux)
 	if err != nil {
 		fmt.Println(err)
 	}
