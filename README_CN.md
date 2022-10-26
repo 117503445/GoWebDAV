@@ -130,6 +130,6 @@ docker run --name go_webdav -d -v ${PWD}/TestDir1:/root/TestDir1 -v ${PWD}/TestD
 
 使用 HTTP Basic Auth 进行验证，账号密码明文发送，毫无安全性可言。如果涉及重要文件、重要密码，请务必用 Nginx 或 Traefik 等网关套一层 HTTPS 。
 
-## THANKS
+## 致谢
 
 <https://github.com/dom111/webdav-js> 提供了前端支持
