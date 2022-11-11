@@ -97,6 +97,25 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 注意，第一个参数不能为 `/static`.
 
+## Docker Compose
+
+暴露需要认证的 `/root/dir1` 和 不需认证的 `/root/dir2`
+
+```yaml
+version: "3.9"
+services:
+  go_webdav:
+    volumes:
+      - "/root/dir1:/root/dir1"
+      - "/root/dir2:/root/dir2"
+    environment:
+      - "dav=/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    image: 117503445/go_webdav
+```
+
 ## 背景介绍
 
 `GoWebdav` 用于搭建基于 WebDAV 的文件共享服务器。

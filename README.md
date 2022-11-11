@@ -97,6 +97,25 @@ This method is recommended for file sharing without confidentiality requirements
 
 Note that the first argument cannot be `/static`.
 
+## Docker Compose
+
+Expose `/root/dir1`, which requires authentication, and `/root/dir2`, which does not require authentication.
+
+```yaml
+version: "3.9"
+services:
+  go_webdav:
+    volumes:
+      - "/root/dir1:/root/dir1"
+      - "/root/dir2:/root/dir2"
+    environment:
+      - "dav=/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    image: 117503445/go_webdav
+```
+
 ## Background introduction
 
 `GoWebdav` is used to build a WebDAV-based file sharing server.
