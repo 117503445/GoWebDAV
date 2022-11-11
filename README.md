@@ -73,6 +73,26 @@ Then open <http://localhost/dav1> and <http://localhost/dav2> in the browser or 
 
 ## Configuration String
 
+You can pass the `--dav` parameter to change the configuration.
+
+On Windows, the same call as quickstart is made as follows
+
+```
+// cmd
+gowebdav_windows_amd64.exe --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
+
+// PowerShell
+.\gowebdav_windows_amd64.exe --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
+```
+
+On Windows, the same call as quickstart is made as follows
+
+```sh
+./gowebdav_linux_amd64 --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
+```
+
+The following is a specific explanation of `dav`
+
 Use a semicolon to separate each WebDAV service configuration, which means that `"/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"` describes 2 services, which are
 
 > /dav1,/root/dir1,user1,pass1,false
@@ -94,8 +114,6 @@ Then according to the previous `-v /root/dir2:/root/dir2`, you can complete the 
 The fifth parameter `true` indicates that this is a read-only service, only supports GET, does not support additions, deletions and modifications.
 
 This method is recommended for file sharing without confidentiality requirements.
-
-Note that the first argument cannot be `/static`.
 
 ## Docker Compose
 

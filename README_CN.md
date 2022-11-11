@@ -73,6 +73,26 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 
 ## 配置字符串说明
 
+可以传入 `--dav` 参数，更改配置。
+
+在 Windows 上，与 quickstart 相同的调用如下
+
+```
+// cmd
+gowebdav_windows_amd64.exe --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
+
+// PowerShell
+.\gowebdav_windows_amd64.exe --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
+```
+
+在 Linux 上，与 quickstart 相同的调用如下
+
+```sh
+./gowebdav_linux_amd64 --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
+```
+
+以下为 `dav` 的具体解释
+
 使用分号将每个 WebDAV 服务配置分隔，也就是说 `"/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"` 描述了 2 个服务，分别是
 
 > /dav1,/root/dir1,user1,pass1,false
@@ -94,8 +114,6 @@ docker run -it --name go_webdav -d -v /root/dir1:/root/dir1 -v /root/dir2:/root/
 第 5 个参数 `true` 表示这是个只读的服务，只支持 GET，不支持 增删改。
 
 对于无保密性要求的文件分享，建议使用这种方式。
-
-注意，第一个参数不能为 `/static`.
 
 ## Docker Compose
 
