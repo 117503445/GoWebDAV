@@ -70,10 +70,8 @@ func main() {
 			return
 		}
 
-		if webDAVConfig.Username != "null" && webDAVConfig.Password != "null" {
-			// 配置中的 用户名 密码 都为 null 时 不进行身份检查
-			// 不都为 null 进行身份检查
-
+		// When the username and password in the configuration are both null, no identity check is performed
+		if webDAVConfig.Username != "null" && webDAVConfig.Password != "null" {	
 			username, password, ok := req.BasicAuth()
 
 			if !ok {
