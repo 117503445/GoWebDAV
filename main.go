@@ -5,26 +5,33 @@ import (
 	"fmt"
 	"golang.org/x/net/context"
 	"golang.org/x/net/webdav"
-	"net/http"
+ 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
 	"GoWebDAV/model"
-
 	"github.com/spf13/viper"
-)
+log    "github.com/sirupsen/logrus"
+) 
 
 //go:embed static/index.html
 var indexHTML string
 
+
 func main() {
+
+
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	viper.SetConfigName("config")
-
-	AppConfig.Load()
-	fmt.Printf("dav = %s\n", AppConfig.dav)
+	viper.SetConfigName("config.yaml")
+	
+	err := AppConfig.Load()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	log.Infof("dav = %s", AppConfig.dav)
 	davConfigs := strings.Split(AppConfig.dav, ";")
 
 	WebDAVConfigs := make([]*model.WebDAVConfig, 0)
@@ -52,19 +59,19 @@ func main() {
 
 			_, err := fmt.Fprintf(w, "<pre>\n")
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 			}
 
 			for _, config := range WebDAVConfigs {
 				_, err = fmt.Fprintf(w, "<a href=\"%s\" >%s</a>\n", config.Prefix+"/", config.Prefix)
 				if err != nil {
-					fmt.Println(err)
+					log.Error(err)
 				}
 			}
 
 			_, err = fmt.Fprintf(w, "<pre>\n")
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 			}
 
 			return
@@ -99,7 +106,7 @@ func main() {
 				w.WriteHeader(http.StatusMethodNotAllowed)
 				_, err := w.Write([]byte("Readonly, Method " + req.Method + " Not Allowed"))
 				if err != nil {
-					fmt.Println(err)
+					log.Error(err)
 					return
 				}
 				return
@@ -109,7 +116,7 @@ func main() {
 		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
 			_, err := w.Write([]byte(indexHTML))
 			if err != nil {
-				fmt.Println(err)
+				log.Error(err)
 				return
 			}
 			return
@@ -122,11 +129,21 @@ func main() {
 		// handle file
 		webDAVConfig.Handler.ServeHTTP(w, req)
 	})
-
-	fmt.Println("start listen on http://0.0.0.0:80")
-	err := http.ListenAndServe("0.0.0.0:80", sMux)
-	if err != nil {
-		fmt.Println(err)
+	ssl :=  viper.GetBool("ssl")
+	servername := viper.GetString("ip")+":"+viper.GetString("listen")
+	log.Info("start listen on ", servername, " ssl = ", ssl )
+	cert := viper.GetString("ssl_certificate")
+	priv := viper.GetString("ssl_certificate_key")
+	if ssl == true {
+		err := http.ListenAndServeTLS(servername, cert, priv, sMux)
+		if err != nil {
+			log.Error("http.ListenAndServeTLS: ",err)
+		}
+	}	else {
+		err := http.ListenAndServe(servername, sMux)
+		if err != nil {
+			log.Error("http.ListenAndServeTLS: ",err)
+		}
 	}
 }
 
@@ -165,3 +182,19 @@ func IsContain(items []string, item string) bool {
 	}
 	return false
 }
+
+func configurateLogger() {
+
+ level, err := log.ParseLevel(viper.GetString("loglevel"))
+  if err != nil {
+ 	level = log.InfoLevel
+    log.WithError(err).
+      WithField("event", "start.parse_level_fail").
+      Info("set log level to \"info\" by default")
+  }
+	log.SetLevel(level)
+	if level==log.DebugLevel {
+		log.SetReportCaller(true)
+	}
+}
+

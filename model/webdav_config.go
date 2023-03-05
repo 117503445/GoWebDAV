@@ -6,6 +6,16 @@ import (
 	"strings"
 )
 
+type ServerConfig struct {
+	listen string 
+	ip string
+	ssl bool 
+	ssl_certificate string
+	ssl_certificate_key string
+	loglevel string
+}
+
+
 type WebDAVConfig struct {
 	Prefix   string
 	PathDir  string
