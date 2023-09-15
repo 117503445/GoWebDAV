@@ -1,13 +1,14 @@
-version: "3.9"
+version: '3.9'
 services:
-  go_webdav:
-    container_name: go_webdav
+  gowebdav-dev:
+    build:
+      dockerfile: Dockerfile_dev
+    container_name: gowebdav-dev
+
+    # restart: unless-stopped
     volumes:
-      - "/root/dir1:/root/dir1"
-      - "/root/dir2:/root/dir2"
-    environment:
-      - "dav=/dav1,/root/dir1,user1,pass1,true;/dav2,/root/dir2,null,null,false"
+        - './:/workspace/GoWebDAV'
     ports:
-      - "80:80"
-    restart: unless-stopped
-    image: 117503445/go_webdav
+      - '80:80'
+    stdin_open: true
+    tty: true
