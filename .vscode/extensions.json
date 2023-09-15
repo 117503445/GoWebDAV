@@ -1,6 +1,7 @@
 {
     "recommendations": [
         "mhutchie.git-graph",
-        "golang.go"
+        "golang.go",
+        "github.copilot"
     ]
 }

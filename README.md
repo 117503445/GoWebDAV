@@ -115,6 +115,13 @@ The fifth parameter `true` indicates that this is a read-only service, only supp
 
 This method is recommended for file sharing without confidentiality requirements.
 
+You can pass in the `--port` parameter to change the port to listen on. The default listens on port 80.
+
+```sh
+# Listening on port 8080
+./gowebdav_linux_amd64 --port 8080
+```
+
 ## Docker Compose
 
 Expose `/root/dir1`, which requires authentication, and `/root/dir2`, which does not require authentication.

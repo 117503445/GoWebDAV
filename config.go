@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	dav string
+	port int
 }
 
 func mustMkdirAll(path string) {
@@ -48,6 +49,7 @@ func prepareQuickStart() (dav string) {
 
 func (config *Config) Load() {
 	pflag.String("dav", "", "like /dav1,./TestDir1,user1,pass1,false;/dav2,./TestDir2,user2,pass2,false")
+	pflag.Int("port", 80, "port")
 	pflag.Parse()
 
 	err := viper.BindPFlags(pflag.CommandLine)
@@ -59,6 +61,7 @@ func (config *Config) Load() {
 		fmt.Println(err)
 	}
 	config.dav = viper.GetString("dav")
+	config.port = viper.GetInt("port")
 	if config.dav == "" {
 		config.dav = prepareQuickStart()
 	}
