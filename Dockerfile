@@ -8,6 +8,6 @@ COPY . .
 RUN GOOS=linux CGO_ENABLED=0 go build -o app
 FROM alpine as prod
 EXPOSE 80
-WORKDIR /root
+WORKDIR /workspace/gowebdav
 COPY --from=build /go/release/app app
 ENTRYPOINT ./app --dav=$dav
