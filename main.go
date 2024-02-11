@@ -122,7 +122,7 @@ func main() {
 		webDAVConfig.Handler.ServeHTTP(w, req)
 	})
 
-	addr := fmt.Sprintf("0.0.0.0:%d", AppConfig.port)
+	addr := fmt.Sprintf("%s:%d", AppConfig.addr, AppConfig.port)
 
 	fmt.Printf("start listen on http://%s\n", addr)
 	err := http.ListenAndServe(addr, sMux)
