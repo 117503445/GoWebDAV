@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	dav string
+	addr string
 	port int
 }
 
@@ -49,6 +50,7 @@ func prepareQuickStart() (dav string) {
 
 func (config *Config) Load() {
 	pflag.String("dav", "", "like /dav1,./TestDir1,user1,pass1,false;/dav2,./TestDir2,user2,pass2,false")
+	pflag.String("addr", "0.0.0.0", "interface to listen")
 	pflag.Int("port", 80, "port")
 	pflag.Parse()
 
@@ -61,6 +63,7 @@ func (config *Config) Load() {
 		fmt.Println(err)
 	}
 	config.dav = viper.GetString("dav")
+	config.addr = viper.GetString("addr")
 	config.port = viper.GetInt("port")
 	if config.dav == "" {
 		config.dav = prepareQuickStart()
