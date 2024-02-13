@@ -115,7 +115,9 @@ gowebdav_windows_amd64.exe --dav "/public-writable,./data/public-writable,null,n
 
 对于无保密性要求的文件分享，建议使用这种方式。
 
-可以传入 `--port` 参数，更改监听的端口。默认监听 80 端口。
+可以传入 `--port` 参数，更改监听的端口，默认监听 80 端口。
+
+可以传入 `--addr` 参数，更改监听的地址，默认监听 0.0.0.0。
 
 ```sh
 # 监听 8080 端口

@@ -117,6 +117,8 @@ This method is recommended for file sharing without confidentiality requirements
 
 You can pass in the `--port` parameter to change the port to listen on. The default listens on port 80.
 
+You can pass in the `--addr` parameter to change the address to listen on. The default listens on `0.0.0.0`.
+
 ```sh
 # Listening on port 8080
 ./gowebdav_linux_amd64 --port 8080
