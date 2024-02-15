@@ -3,12 +3,12 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"golang.org/x/net/context"
-	"golang.org/x/net/webdav"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
+
+	"golang.org/x/net/context"
+	"golang.org/x/net/webdav"
 
 	"GoWebDAV/model"
 
@@ -30,19 +30,24 @@ func main() {
 	WebDAVConfigs := make([]*model.WebDAVConfig, 0)
 
 	for _, davConfig := range davConfigs {
-		WebDAVConfig := &model.WebDAVConfig{}
-		WebDAVConfig.InitByConfigStr(davConfig)
+		if len(davConfig) == 0 {
+			continue
+		}
+		WebDAVConfig := model.InitByConfigStr(davConfig)
+		// Check for collision
+		found, _ := model.ParseURL(WebDAVConfigs, WebDAVConfig.Prefix)
+		if found != nil {
+			fmt.Printf("Dav names collision: `%s` starts with `%s`", WebDAVConfig.Prefix, found.Prefix)
+			os.Exit(1)
+		}
 
-		WebDAVConfigs = append(WebDAVConfigs, WebDAVConfig)
+		WebDAVConfigs = append(WebDAVConfigs, &WebDAVConfig)
 	}
-
-	w := &model.WebDAVConfig{}
-	WebDAVConfigs = append(WebDAVConfigs, w)
 
 	sMux := http.NewServeMux()
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 
-		webDAVConfig := model.WebDAVConfigFindOneByPrefix(WebDAVConfigs, parsePrefixFromURL(req.URL))
+		webDAVConfig, davPath := model.ParseURL(WebDAVConfigs, req.URL.Path)
 
 		if webDAVConfig == nil {
 
@@ -71,7 +76,7 @@ func main() {
 		}
 
 		// When the username and password in the configuration are both null, no identity check is performed
-		if webDAVConfig.Username != "null" && webDAVConfig.Password != "null" {	
+		if webDAVConfig.Username != "null" && webDAVConfig.Password != "null" {
 			username, password, ok := req.BasicAuth()
 
 			if !ok {
@@ -92,9 +97,13 @@ func main() {
 		}
 
 		if webDAVConfig.ReadOnly {
-			allowMethods := []string{"GET", "OPTIONS", "PROPFIND", "HEAD"}
-			if !IsContain(allowMethods, req.Method) {
-				// ReadOnly
+			allowedMethods := map[string]bool{
+				"GET": true, 
+				"OPTIONS": true,
+				"PROPFIND": true,
+				"HEAD": true,
+			}
+			if !allowedMethods[req.Method] {
 				w.WriteHeader(http.StatusMethodNotAllowed)
 				_, err := w.Write([]byte("Readonly, Method " + req.Method + " Not Allowed"))
 				if err != nil {
@@ -105,7 +114,7 @@ func main() {
 			}
 		}
 
-		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, req) {
+		if req.Method == "GET" && isDir(webDAVConfig.Handler.FileSystem, davPath) {
 			_, err := w.Write([]byte(indexHTML))
 			if err != nil {
 				fmt.Println(err)
@@ -131,22 +140,10 @@ func main() {
 	}
 }
 
-// /dav1/123.txt -> dav1
-func parsePrefixFromURL(url *url.URL) string {
-	u := fmt.Sprint(url)
-	return "/" + strings.Split(u, "/")[1]
-}
-
-func isDir(fs webdav.FileSystem, req *http.Request) bool {
+func isDir(fs webdav.FileSystem, davPath string) bool {
 	ctx := context.Background()
-	path := req.URL.Path
-	//fmt.Println(path)
-	s := strings.Split(path, "/")[2:]
-	//fmt.Println(s)
-	path = strings.Join(s, "/")
-	//fmt.Println(path)
 
-	f, err := fs.OpenFile(ctx, path, os.O_RDONLY, 0)
+	f, err := fs.OpenFile(ctx, davPath, os.O_RDONLY, 0)
 	if err != nil {
 		return false
 	}
@@ -158,11 +155,3 @@ func isDir(fs webdav.FileSystem, req *http.Request) bool {
 	return true
 }
 
-func IsContain(items []string, item string) bool {
-	for _, eachItem := range items {
-		if eachItem == item {
-			return true
-		}
-	}
-	return false
-}
