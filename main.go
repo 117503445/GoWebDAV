@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/net/webdav"
@@ -13,12 +14,33 @@ import (
 	"GoWebDAV/model"
 
 	"github.com/spf13/viper"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 //go:embed static/index.html
 var indexHTML string
 
-func main() {
+func setLogger() {
+	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
+	output.FormatLevel = func(i interface{}) string {
+		return strings.ToUpper(fmt.Sprintf("| %-6s|", i))
+	}
+	output.FormatFieldName = func(i interface{}) string {
+		return fmt.Sprintf("%s:", i)
+	}
+	output.FormatFieldValue = func(i interface{}) string {
+		return strings.ToUpper(fmt.Sprintf("%s", i))
+	}
+	log.Logger = log.Output(output)
+}
+
+func init() {
+	setLogger()
+}
+
+func run() {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.SetConfigName("config")
@@ -50,7 +72,6 @@ func main() {
 		webDAVConfig, davPath := model.ParseURL(WebDAVConfigs, req.URL.Path)
 
 		if webDAVConfig == nil {
-
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 			// index
@@ -98,10 +119,10 @@ func main() {
 
 		if webDAVConfig.ReadOnly {
 			allowedMethods := map[string]bool{
-				"GET": true, 
-				"OPTIONS": true,
+				"GET":      true,
+				"OPTIONS":  true,
 				"PROPFIND": true,
-				"HEAD": true,
+				"HEAD":     true,
 			}
 			if !allowedMethods[req.Method] {
 				w.WriteHeader(http.StatusMethodNotAllowed)
@@ -140,6 +161,11 @@ func main() {
 	}
 }
 
+func main() {
+	log.Debug().Msg("Hello")
+	run()
+}
+
 func isDir(fs webdav.FileSystem, davPath string) bool {
 	ctx := context.Background()
 
@@ -154,4 +180,3 @@ func isDir(fs webdav.FileSystem, davPath string) bool {
 	}
 	return true
 }
-
