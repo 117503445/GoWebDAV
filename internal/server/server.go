@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	_ "embed"
 	"net/http"
 	"os"
 	"strings"
@@ -9,6 +10,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/webdav"
 )
+
+//go:embed index.html
+var indexHTML string
 
 type WebDAVServer struct {
 	addr string // Address to listen on, e.g. "0.0.0.0:8080"
@@ -51,24 +55,39 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) *WebDAVServer
 	}
 
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		log.Debug().Str("URL", req.URL.Path).Str("Method", req.Method).Msg("Request")
+		url := req.URL.Path
+		method := req.Method
+		log.Debug().Str("URL", url).Str("Method", method).Msg("Request")
+
 		if enableSingleDavMode {
+			// TODO: ui for single dav mode
 			singleHandler.ServeHTTP(w, req)
 			return
 		}
 
-		url := req.URL.Path
 		for prefix, handler := range handlers {
 			if !strings.HasPrefix(url, prefix) {
+				continue
+			}
+			if method == "HEAD" && url == prefix+"/" {
 				continue
 			}
 			handler.ServeHTTP(w, req)
 			return
 		}
 
-		if req.Method == "PROPFIND" && url == "/" {
+		if method == "PROPFIND" && url == "/" {
 			indexHandler.ServeHTTP(w, req)
 			return
+		}
+
+		if method == "GET" && url == "/" {
+			// TODO: return dav selector
+		}
+
+		log.Debug().Str("URL", url).Str("Method", method).Msg("return html")
+		if _, err := w.Write([]byte(indexHTML)); err != nil {
+			log.Error().Err(err).Msg("Failed to write index.html")
 		}
 	})
 	return &WebDAVServer{
