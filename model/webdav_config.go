@@ -1,9 +1,11 @@
 package model
 
 import (
-	"golang.org/x/net/webdav"
+	"os"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/webdav"
 )
 
 type WebDAVConfig struct {
@@ -28,25 +30,35 @@ func (WebDAVConfig *WebDAVConfig) Init(prefix string, pathDir string, username s
 		Prefix:     prefix,
 	}
 }
-func (WebDAVConfig *WebDAVConfig) InitByConfigStr(str string) {
+
+func InitByConfigStr(str string) WebDAVConfig {
 	davConfigArray := strings.Split(str, ",")
 	prefix := davConfigArray[0]
 	pathDir := davConfigArray[1]
 	username := davConfigArray[2]
 	password := davConfigArray[3]
 
+	if _, err := os.Stat(pathDir); os.IsNotExist(err) {
+		println("Dir not exists: ", pathDir)
+		os.Exit(1)
+	}
+
 	readonly, err := strconv.ParseBool(davConfigArray[4])
 	if err != nil {
 		readonly = false
 	}
 
+	var WebDAVConfig WebDAVConfig
 	WebDAVConfig.Init(prefix, pathDir, username, password, readonly)
+	return WebDAVConfig
 }
-func WebDAVConfigFindOneByPrefix(WebDAVConfigs []*WebDAVConfig, prefix string) *WebDAVConfig {
+
+func ParseURL(WebDAVConfigs []*WebDAVConfig, url string) (*WebDAVConfig, string) {
 	for _, WebDAVConfig := range WebDAVConfigs {
-		if WebDAVConfig.Prefix == prefix {
-			return WebDAVConfig
+		davPath, found := strings.CutPrefix(url, WebDAVConfig.Prefix)
+		if found {
+			return WebDAVConfig, davPath
 		}
 	}
-	return nil
+	return nil, ""
 }
