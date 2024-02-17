@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -106,7 +108,38 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) *WebDAVServer
 		handlers[cfg.Prefix] = h
 	}
 
+	enableSingleDavMode := false
+	var singleHandler *Handler
+	if len(handlers) == 1 {
+		for _, h := range handlers {
+			if h.prefix == "/" {
+				log.Debug().Msg("Enable SingleDavMode")
+
+				enableSingleDavMode = true
+				singleHandler = h
+				break
+			}
+		}
+	}
+
+	// create a webdav.Handler for listing all available prefixes
+	memFileSystem := webdav.NewMemFS()
+	for _, cfg := range handlerConfigs {
+		memFileSystem.Mkdir(context.TODO(), cfg.Prefix, os.ModeDir)
+	}
+	indexHandler := &webdav.Handler{
+		FileSystem: memFileSystem,
+		LockSystem: webdav.NewMemLS(),
+		Prefix:     "/",
+	}
+
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		log.Debug().Str("URL", req.URL.Path).Str("Method", req.Method).Msg("Request")
+		if enableSingleDavMode {
+			singleHandler.ServeHTTP(w, req)
+			return
+		}
+
 		url := req.URL.Path
 		for prefix, handler := range handlers {
 			if !strings.HasPrefix(url, prefix) {
@@ -116,7 +149,10 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) *WebDAVServer
 			return
 		}
 
-		// TODO: list all available prefixes
+		if req.Method == "PROPFIND" && url == "/" {
+			indexHandler.ServeHTTP(w, req)
+			return
+		}
 	})
 	return &WebDAVServer{
 		addr: addr,

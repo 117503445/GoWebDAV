@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"GoWebDAV/internal/server"
-	// "github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/assert"
 	"github.com/studio-b12/gowebdav"
 )
 
@@ -20,33 +20,92 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-const ADDR = "localhost:8081"
+var file1Name = "1.txt"
+var file1Content = []byte("file1")
 
-func TestPublicWrite(t *testing.T) {
-	dirData := "./data/public-writeable"
-	os.Mkdir(dirData, 0755)
+var file2Name = "2.txt"
+var file2Content = []byte("file2")
+
+func untilConnected(assert *assert.Assertions, client *gowebdav.Client) {
+	maxTries := 10
+	for {
+		err := client.Connect()
+		if err == nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+		maxTries--
+		if maxTries == 0 {
+			assert.FailNow("", "Failed to connect to the server")
+		}
+	}
 }
 
-func TestDAV(t *testing.T) {
-	var err error
-	// Create a directory for the server
+// readOnlyAPITest tests the following:
+// 1. Read the file
+// 2. Read the directory
+// before test, the client should be connected to the server and one file should be created
+func readOnlyAPITest(assert *assert.Assertions, client *gowebdav.Client) {
+	downloadContent, err := client.Read("/1.txt")
+	assert.Nil(err)
+
+	if string(downloadContent) != string(file1Content) {
+		assert.FailNow("Failed to download the file")
+	}
+
+	files, err := client.ReadDir("/")
+	assert.Nil(err)
+	if len(files) != 1 {
+		assert.FailNowf("files number not equal to 1", "len(files) != 1, got %d", len(files))
+	}
+}
+
+// apiTest tests the following:
+// 1. Create a directory
+// 2. Write a file to the directory
+// 3. Read the directory
+// 4. Read the file
+// 5. Remove the file
+// before test, the client should be connected to the server and one file should be created
+func apiTest(assert *assert.Assertions, client *gowebdav.Client) {
+	readOnlyAPITest(assert, client)
+
+	assert.Nil(client.Mkdir("/dir", os.ModePerm))
+	client.Write("/dir/"+file2Name, file2Content, 0644)
+
+	files, err := client.ReadDir("/dir")
+	assert.Nil(err)
+	if len(files) != 1 {
+		assert.FailNowf("files number not equal to 1", "len(files) != 1, got %d", len(files))
+	}
+
+	downloadContent, err := client.Read("/dir/2.txt")
+	assert.Nil(err)
+	if string(downloadContent) != string(file2Content) {
+		assert.FailNow("Failed to download the file")
+	}
+
+	assert.Nil(client.Remove("/dir/2.txt"))
+
+	files, err = client.ReadDir("/dir")
+	assert.Nil(err)
+	if len(files) != 0 {
+		assert.FailNowf("files number not equal to 0", "len(files) != 0, got %d", len(files))
+	}
+}
+
+func TestMultiDav(t *testing.T) {
+	const ADDR = "localhost:8081"
+	assert := assert.New(t)
 
 	dirPublicWriteable := "./data/public-writeable"
 	dirPublicReadonly := "./data/public-readonly"
 	dirAuthWriteable := "./data/auth-writeable"
 
-	file1Name := "1.txt"
-	file1Content := []byte("file1")
-
 	dirs := []string{dirPublicWriteable, dirPublicReadonly, dirAuthWriteable}
 	for _, dir := range dirs {
-		if err = os.Mkdir(dir, 0755); err != nil {
-			t.Fatal(err)
-		}
-
-		if err = os.WriteFile(dir+"/"+file1Name, file1Content, 0644); err != nil {
-			t.Fatal(err)
-		}
+		assert.Nil(os.Mkdir(dir, 0755))
+		assert.Nil(os.WriteFile(dir+"/"+file1Name, file1Content, 0644))
 	}
 
 	server := server.NewWebDAVServer(ADDR, []*server.HandlerConfig{
@@ -78,49 +137,46 @@ func TestDAV(t *testing.T) {
 	publicReadonlyClient := gowebdav.NewClient("http://"+ADDR+"/public-readonly", "", "")
 	authWriteableClient := gowebdav.NewClient("http://"+ADDR+"/auth-writeable", "user", "pass")
 
-	untilConnected := func(t *testing.T, client *gowebdav.Client) {
-		maxTries := 10
-		for {
-			err := client.Connect()
-			if err == nil {
-				break
-			}
-			time.Sleep(100 * time.Millisecond)
-			maxTries--
-			if maxTries == 0 {
-				t.Fatal("Failed to connect to the server")
-			}
-		}
+	untilConnected(assert, publicWriteableClient)
+	untilConnected(assert, publicReadonlyClient)
+	untilConnected(assert, authWriteableClient)
+
+	apiTest(assert, publicWriteableClient)
+	readOnlyAPITest(assert, publicReadonlyClient)
+	apiTest(assert, authWriteableClient)
+
+	indexClient := gowebdav.NewClient("http://"+ADDR+"/", "", "")
+	untilConnected(assert, indexClient)
+
+	files, err := indexClient.ReadDir("/")
+	assert.Nil(err)
+	if len(files) != 3 {
+		assert.FailNowf("files number not equal to 3", "len(files) != 3, got %d", len(files))
 	}
+}
 
-	untilConnected(t, publicWriteableClient)
-	untilConnected(t, publicReadonlyClient)
-	untilConnected(t, authWriteableClient)
+func TestSingleDav(t *testing.T) {
+	const ADDR = "localhost:8082"
+	assert := assert.New(t)
 
-	readOnlyAPITest := func(t *testing.T, client *gowebdav.Client) {
-		downloadContent, err := client.Read("/1.txt")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if string(downloadContent) != string(file1Content) {
-			t.Fatal("Failed to download the file")
-		}
+	dir := "./data/single-dav"
+	os.Mkdir(dir, 0755)
 
-		files, err := client.ReadDir("/")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(files) != 1 {
-			t.Fatal("len(files) != 1, got", len(files))
-		}
+	assert.Nil(os.WriteFile(dir+"/"+file1Name, file1Content, 0644))
 
-	}
+	server := server.NewWebDAVServer(ADDR, []*server.HandlerConfig{
+		{
+			Prefix:   "/",
+			PathDir:  dir,
+			Username: "",
+			Password: "",
+			ReadOnly: false,
+		},
+	})
+	go server.Run()
 
-	apiTest := func(t *testing.T, client *gowebdav.Client) {
-		readOnlyAPITest(t, client)
-	}
+	client := gowebdav.NewClient("http://"+ADDR+"/", "", "")
+	untilConnected(assert, client)
 
-	apiTest(t, publicWriteableClient)
-	readOnlyAPITest(t, publicReadonlyClient)
-	apiTest(t, authWriteableClient)
+	apiTest(assert, client)
 }
