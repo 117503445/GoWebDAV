@@ -116,7 +116,13 @@ func checkHandlerConfig(cfg *HandlerConfig) error {
 	}
 
 	// pathDir must be a valid directory
-	if fileinfo, err := os.Stat(cfg.PathDir); err != nil {
+	if fileinfo, err := os.Stat(cfg.PathDir); os.IsNotExist(err) {
+		// try to create the directory
+		log.Info().Str("path", cfg.PathDir).Msg("Creating dir")
+		if err := os.MkdirAll(cfg.PathDir, 0755); err != nil {
+			return err
+		}
+	}else if err != nil {
 		return err
 	} else if !fileinfo.IsDir() {
 		return errors.New("pathDir must be a directory")
