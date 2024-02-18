@@ -2,7 +2,7 @@
 
 > Share local files with WebDAV, lightweight and very easy to use.
 
-[中文](./README_CN.md)
+English | [中文](./README_zh_CN.md)
 
 ## feature
 
@@ -39,19 +39,19 @@ GoWebDAV will automatically create the example file under the `./data` path with
 
 Visit <http://localhost:80> with your browser and you will see 3 different GoWebDAV services.
 
-![index](./assets/index.png)
+![index](./doc/index.png)
 
 where <http://localhost:80/public-writable> is the `public-writable` service that maps the local `./data/public-writable` folder. It is Anonymizable and writable. You can view the contents of the file in the browser, as well as perform operations such as uploading and deleting.
 
-![public-writable](./assets/public-writable.png)
+![public-writable](./doc/public-writable.png)
 
 <http://localhost:80/public-readonly> is the `public-readonly` service that maps the local `./data/public-readonly` folder. It is Anonymizable and read-only. You can view the contents of the file in your browser, but you cannot upload, delete, etc.
 
-![public-readonly](./assets/public-readonly.png)
+![public-readonly](./doc/public-readonly.png)
 
 <http://localhost:80/private-writable> is the `private-writable` service that maps the local `./data/private-writable` folder. It is user-authenticated and writable. After logging in with `user1` and `pass1`, you can view the contents of the files in the browser, as well as upload, delete, etc.
 
-![private-writable](./assets/private-writable.png)
+![private-writable](./doc/private-writable.png)
 
 The `dav` parameter can also be specified to configure the local path, user authentication, read-only, etc. properties of the WebDAV service, as described in the *Configuration Strings Description* section. When `dav` is not specified, the default `dav` parameter used by GoWebDAV is `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false`.
 
