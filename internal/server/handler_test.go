@@ -7,6 +7,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const UnExistDir = "/114514"
+
+func TestMain(m *testing.M) {
+	if _, err := os.Stat(UnExistDir); err == nil {
+		panic(UnExistDir + " should not exist")
+	}
+
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestHandlerConfig(t *testing.T) {
 	assert := assert.New(t)
 
@@ -71,9 +82,9 @@ func TestHandlerConfig(t *testing.T) {
 
 	for _, c := range cases {
 		if c.valid {
-			assert.Nil(checkHandlerConfig(c.cfg), "cfg: %+v should be valid", c.cfg)
+			assert.Nil(checkHandlerConfig(c.cfg, false), "cfg: %+v should be valid", c.cfg)
 		} else {
-			assert.NotNil(checkHandlerConfig(c.cfg), "cfg: %+v should be invalid", c.cfg)
+			assert.NotNil(checkHandlerConfig(c.cfg, false), "cfg: %+v should be invalid", c.cfg)
 		}
 	}
 }

@@ -96,7 +96,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h.handler.ServeHTTP(w, req)
 }
 
-func checkHandlerConfig(cfg *HandlerConfig) error {
+// checkHandlerConfig checks if the handler config is valid
+// if mkdir is true, it will create the directory if not exist
+func checkHandlerConfig(cfg *HandlerConfig, mkdir bool) error {
 	// prefix must start with "/", contains only one "/"
 	if cfg.Prefix == "" || cfg.Prefix[0] != '/' {
 		return errors.New("prefix must start with /")
@@ -117,12 +119,16 @@ func checkHandlerConfig(cfg *HandlerConfig) error {
 
 	// pathDir must be a valid directory
 	if fileinfo, err := os.Stat(cfg.PathDir); os.IsNotExist(err) {
-		// try to create the directory
-		log.Info().Str("path", cfg.PathDir).Msg("Creating dir")
-		if err := os.MkdirAll(cfg.PathDir, 0755); err != nil {
-			return err
+		if !mkdir {
+			return errors.New("pathDir does not exist")
+		} else {
+			// try to create the directory
+			log.Info().Str("path", cfg.PathDir).Msg("Creating dir")
+			if err := os.MkdirAll(cfg.PathDir, 0755); err != nil {
+				return err
+			}
 		}
-	}else if err != nil {
+	} else if err != nil {
 		return err
 	} else if !fileinfo.IsDir() {
 		return errors.New("pathDir must be a directory")
@@ -137,7 +143,7 @@ func checkHandlerConfig(cfg *HandlerConfig) error {
 
 func checkHandlerConfigs(cfgs []*HandlerConfig) error {
 	for _, cfg := range cfgs {
-		if err := checkHandlerConfig(cfg); err != nil {
+		if err := checkHandlerConfig(cfg, true); err != nil {
 			return fmt.Errorf("config %+v is invalid: %s", cfg, err.Error())
 		}
 	}
