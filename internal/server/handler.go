@@ -13,7 +13,7 @@ import (
 )
 
 //go:embed webdavjs.html
-var webdavjsHTML string
+var WebdavjsHTML string
 
 type HandlerConfig struct {
 	Prefix   string
@@ -82,7 +82,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	log.Debug().Str("URL", req.URL.Path).Str("Method", req.Method).Msg("Handler Request")
 	if req.Method == "GET" && (req.URL.Path == h.prefix || req.URL.Path == h.prefix+"/") {
-		if _, err := w.Write([]byte(webdavjsHTML)); err != nil {
+		if _, err := w.Write([]byte(WebdavjsHTML)); err != nil {
 			log.Error().Err(err).Msg("Failed to write index.html")
 		}
 		return

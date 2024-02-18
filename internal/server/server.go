@@ -83,7 +83,7 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) (*WebDAVServe
 		}
 
 		if method == "GET" && url == "/" {
-			if _, err := w.Write([]byte(webdavjsHTML)); err != nil {
+			if _, err := w.Write([]byte(WebdavjsHTML)); err != nil {
 				log.Error().Err(err).Msg("Failed to write index.html")
 			}
 			return

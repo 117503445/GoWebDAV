@@ -1,11 +1,14 @@
 package tests
 
 import (
+	"io"
+	"net/http"
 	"os"
 	"testing"
 	"time"
 
 	"GoWebDAV/internal/server"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/studio-b12/gowebdav"
 )
@@ -94,6 +97,17 @@ func apiTest(assert *assert.Assertions, client *gowebdav.Client) {
 	}
 }
 
+func uiTest(assert *assert.Assertions, url string) {
+	resp, err := http.Get(url)
+	assert.Nil(err)
+	assert.Equal(http.StatusOK, resp.StatusCode)
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	assert.Nil(err)
+	assert.Equal(server.WebdavjsHTML, string(body))
+}
+
 func TestMultiDav(t *testing.T) {
 	const ADDR = "localhost:8081"
 	assert := assert.New(t)
@@ -153,6 +167,15 @@ func TestMultiDav(t *testing.T) {
 	assert.Nil(err)
 	if len(files) != 3 {
 		assert.FailNowf("files number not equal to 3", "len(files) != 3, got %d", len(files))
+	}
+
+	urls := []string{
+		"http://" + ADDR + "/",
+		"http://" + ADDR + "/public-writeable",
+		"http://" + ADDR + "/public-readonly",
+	}
+	for _, url := range urls {
+		uiTest(assert, url)
 	}
 }
 
