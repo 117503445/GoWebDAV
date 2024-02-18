@@ -11,15 +11,16 @@ import (
 	"golang.org/x/net/webdav"
 )
 
-//go:embed index.html
-var indexHTML string
-
 type WebDAVServer struct {
 	addr string // Address to listen on, e.g. "0.0.0.0:8080"
 	smux *http.ServeMux
 }
 
-func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) *WebDAVServer {
+func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) (*WebDAVServer, error) {
+	if err := checkHandlerConfigs(handlerConfigs); err != nil {
+		return nil, err
+	}
+
 	sMux := http.NewServeMux()
 
 	handlers := make(map[string]*handler) // URL prefix -> Handler
@@ -46,7 +47,10 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) *WebDAVServer
 	// create a webdav.Handler for listing all available prefixes
 	memFileSystem := webdav.NewMemFS()
 	for _, cfg := range handlerConfigs {
-		memFileSystem.Mkdir(context.TODO(), cfg.Prefix, os.ModeDir)
+		if err := memFileSystem.Mkdir(context.TODO(), cfg.Prefix, os.ModeDir); err != nil {
+			log.Error().Err(err).Str("prefix", cfg.Prefix).Msg("Failed to create directory in memFileSystem")
+			continue
+		}
 	}
 	indexHandler := &webdav.Handler{
 		FileSystem: memFileSystem,
@@ -69,9 +73,6 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) *WebDAVServer
 			if !strings.HasPrefix(url, prefix) {
 				continue
 			}
-			if method == "HEAD" && url == prefix+"/" {
-				continue
-			}
 			handler.ServeHTTP(w, req)
 			return
 		}
@@ -82,21 +83,26 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) *WebDAVServer
 		}
 
 		if method == "GET" && url == "/" {
-			// TODO: return dav selector
+			if _, err := w.Write([]byte(webdavjsHTML)); err != nil {
+				log.Error().Err(err).Msg("Failed to write index.html")
+			}
+			return
 		}
 
-		log.Debug().Str("URL", url).Str("Method", method).Msg("return html")
-		if _, err := w.Write([]byte(indexHTML)); err != nil {
-			log.Error().Err(err).Msg("Failed to write index.html")
+		if method == "HEAD" || method == "OPTIONS" {
+			return
 		}
+
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	})
 	return &WebDAVServer{
 		addr: addr,
 		smux: sMux,
-	}
+	}, nil
 }
 
 func (s *WebDAVServer) Run() {
+	log.Info().Str("addr", "http://"+s.addr).Msg("WebDAV server started")
 	if err := http.ListenAndServe(s.addr, s.smux); err != nil {
 		panic(err)
 	}

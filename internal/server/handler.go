@@ -1,13 +1,19 @@
 package server
 
 import (
+	_ "embed"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"golang.org/x/net/webdav"
 )
+
+//go:embed webdavjs.html
+var webdavjsHTML string
 
 type HandlerConfig struct {
 	Prefix   string
@@ -24,7 +30,7 @@ type handler struct {
 	dirPath string // File system directory
 
 	username string // HTTP Basic Auth Username. if empty, no auth
-	password string // HTTP Basic Auth Password
+	password string // HTTP Basic Auth Password.
 
 	readOnly bool // if true, only allow GET, OPTIONS, PROPFIND, HEAD
 }
@@ -74,6 +80,19 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	log.Debug().Str("URL", req.URL.Path).Str("Method", req.Method).Msg("Handler Request")
+	if req.Method == "GET" && (req.URL.Path == h.prefix || req.URL.Path == h.prefix+"/") {
+		if _, err := w.Write([]byte(webdavjsHTML)); err != nil {
+			log.Error().Err(err).Msg("Failed to write index.html")
+		}
+		return
+	}
+
+	if req.Method == "HEAD" {
+		// for ui
+		return
+	}
+
 	h.handler.ServeHTTP(w, req)
 }
 
@@ -103,20 +122,24 @@ func checkHandlerConfig(cfg *HandlerConfig) error {
 		return errors.New("pathDir must be a directory")
 	}
 
+	if cfg.Username != "" && cfg.Password == "" {
+		return errors.New("password must not be empty if username is not empty")
+	}
+
 	return nil
 }
 
 func checkHandlerConfigs(cfgs []*HandlerConfig) error {
 	for _, cfg := range cfgs {
 		if err := checkHandlerConfig(cfg); err != nil {
-			return err
+			return fmt.Errorf("config %+v is invalid: %s", cfg, err.Error())
 		}
 	}
 
 	prefixs := make(map[string]bool)
 	for _, cfg := range cfgs {
 		if _, ok := prefixs[cfg.Prefix]; ok {
-			return errors.New("prefix " + cfg.Prefix + " is duplicated")
+			return fmt.Errorf("prefix %s is duplicated", cfg.Prefix)
 		}
 		prefixs[cfg.Prefix] = true
 	}

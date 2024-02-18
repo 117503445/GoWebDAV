@@ -108,7 +108,7 @@ func TestMultiDav(t *testing.T) {
 		assert.Nil(os.WriteFile(dir+"/"+file1Name, file1Content, 0644))
 	}
 
-	server := server.NewWebDAVServer(ADDR, []*server.HandlerConfig{
+	server, err := server.NewWebDAVServer(ADDR, []*server.HandlerConfig{
 		{
 			Prefix:   "/public-writeable",
 			PathDir:  dirPublicWriteable,
@@ -131,6 +131,7 @@ func TestMultiDav(t *testing.T) {
 			ReadOnly: false,
 		},
 	})
+	assert.Nil(err)
 	go server.Run()
 
 	publicWriteableClient := gowebdav.NewClient("http://"+ADDR+"/public-writeable", "", "")
@@ -164,7 +165,7 @@ func TestSingleDav(t *testing.T) {
 
 	assert.Nil(os.WriteFile(dir+"/"+file1Name, file1Content, 0644))
 
-	server := server.NewWebDAVServer(ADDR, []*server.HandlerConfig{
+	server, err := server.NewWebDAVServer(ADDR, []*server.HandlerConfig{
 		{
 			Prefix:   "/",
 			PathDir:  dir,
@@ -173,6 +174,7 @@ func TestSingleDav(t *testing.T) {
 			ReadOnly: false,
 		},
 	})
+	assert.Nil(err)
 	go server.Run()
 
 	client := gowebdav.NewClient("http://"+ADDR+"/", "", "")

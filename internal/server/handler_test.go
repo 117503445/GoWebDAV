@@ -37,6 +37,12 @@ func TestHandlerConfig(t *testing.T) {
 			false,
 		}, {
 			&HandlerConfig{
+				Prefix:  "",
+				PathDir: wd,
+			},
+			false,
+		}, {
+			&HandlerConfig{
 				Prefix:  "/data/",
 				PathDir: wd,
 			},
@@ -51,6 +57,13 @@ func TestHandlerConfig(t *testing.T) {
 			&HandlerConfig{
 				Prefix:  "/data",
 				PathDir: "/114514",
+			},
+			false,
+		}, {
+			&HandlerConfig{
+				Prefix:   "/data",
+				PathDir:  wd,
+				Username: "user",
 			},
 			false,
 		},
