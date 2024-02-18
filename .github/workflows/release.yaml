@@ -16,6 +16,8 @@ jobs:
         with:
           go-version: "1.22"
 
+      - run: go test ./...
+
       - run: go build -o gowebdav_linux_amd64 .
       - run: CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o gowebdav_windows_amd64.exe .
       - run: CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o gowebdav_darwin_amd64 .
