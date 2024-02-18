@@ -123,6 +123,18 @@ func TestHandlerConfigs(t *testing.T) {
 				},
 			},
 			false,
+		}, {
+			[]*HandlerConfig{
+				{
+					Prefix:  "/",
+					PathDir: wd,
+				},
+				{
+					Prefix:  "/data1",
+					PathDir: wd,
+				},
+			},
+			false,
 		},
 	}
 

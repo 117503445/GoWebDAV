@@ -44,14 +44,18 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) (*WebDAVServe
 		}
 	}
 
-	// create a webdav.Handler for listing all available prefixes
-	memFileSystem := webdav.NewMemFS()
-	for _, cfg := range handlerConfigs {
-		if err := memFileSystem.Mkdir(context.TODO(), cfg.Prefix, os.ModeDir); err != nil {
-			log.Error().Err(err).Str("prefix", cfg.Prefix).Msg("Failed to create directory in memFileSystem")
-			continue
+	var memFileSystem webdav.FileSystem
+	if !enableSingleDavMode {
+		// create a webdav.Handler for listing all available prefixes
+		memFileSystem = webdav.NewMemFS()
+		for _, cfg := range handlerConfigs {
+			if err := memFileSystem.Mkdir(context.TODO(), cfg.Prefix, os.ModeDir); err != nil {
+				log.Error().Err(err).Str("prefix", cfg.Prefix).Msg("Failed to create directory in memFileSystem")
+				continue
+			}
 		}
 	}
+
 	indexHandler := &webdav.Handler{
 		FileSystem: memFileSystem,
 		LockSystem: webdav.NewMemLS(),

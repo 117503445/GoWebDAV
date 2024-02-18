@@ -51,7 +51,7 @@ func NewHandler(cfg *HandlerConfig) *handler {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	enableBasicAuth := h.username != ""
+	enableBasicAuth := h.username != "" && h.username != "null"
 	if enableBasicAuth {
 		username, password, ok := req.BasicAuth()
 		// log.Debug().Str("username", username).Str("password", password).Bool("ok", ok).Msg("BasicAuth Request")
@@ -148,6 +148,15 @@ func checkHandlerConfigs(cfgs []*HandlerConfig) error {
 		}
 	}
 
+	if len(cfgs) > 1 {
+		for _, cfg := range cfgs {
+			if cfg.Prefix == "/" {
+				return errors.New("prefix / is not allowed if there are more than one handler")
+			}
+		}
+	}
+
+	// check if prefix is duplicated
 	prefixs := make(map[string]bool)
 	for _, cfg := range cfgs {
 		if _, ok := prefixs[cfg.Prefix]; ok {

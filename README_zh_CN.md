@@ -1,4 +1,4 @@
-# GoWebdav
+# GoWebDAV
 
 > 使用 WebDAV 分享本地文件，轻量、易于使用
 
@@ -55,6 +55,8 @@ GoWebDAV 会自动在 `./data` 路径下创建示例文件，文件结构如下
 
 ![private-writable](./doc/private-writable.png)
 
+当然，除了浏览器，也可以使用其他 WebDAV 客户端工具进行访问。
+
 可以通过指定 `dav` 参数来配置 WebDAV 服务的本地路径、用户验证、是否只读等属性，详情见 *使用* 章节。
 
 ## 使用
@@ -70,15 +72,19 @@ GoWebDAV 会自动在 `./data` 路径下创建示例文件，文件结构如下
 
 `dav` 参数可以指定 WebDAV 服务的本地路径、用户验证、是否只读等属性。
 
-每个本地路径都可以配置一个 WebDAV 服务，使用分号分隔。例子:
+每个本地路径都可以配置一个 WebDAV 服务，使用分号分隔。例子：
 
-- `"/dir1,/data/dir1,user1,pass1,true;/dir2,/data/dir2,null,null,false"` 描述了 2 个服务，分别是将 `/data/dir1` 映射至 `/dir1`，将 `/data/dir2` 映射至 `/dir2`。
+- `"/dir1,/data/dir1,user1,pass1,true;/dir2,/data/dir2,null,null,false"` 描述了 2 个服务，分别是将文件夹 `/data/dir1` 映射至 WebDAV 服务 `/dir1`，将文件夹 `/data/dir2` 映射至 WebDAV 服务 `/dir2`。
 
-对于每个服务，需要使用逗号分隔 5 个参数，分别是 `服务路径,本地路径,用户名,密码,是否只读`。其中用户名和密码都为 `null` 时表示不需要验证。例子:
+对于每个服务，需要使用逗号分隔 5 个参数，分别是 `服务路径,本地路径,用户名,密码,是否只读`。其中用户名和密码都为 `null` 时表示不需要验证。例子：
 
-- `"/dir1,/data/dir1,user1,pass1,true"` 描述了一个服务，将 `/data/dir1` 映射至 `/dir1`，访问需要的用户名和密码分别为 `user1` 和 `pass1`，只读(禁止上传、更新、删除)。
-- `"/dir2,/data/dir2,null,null,false"` 描述了一个服务，将 `/data/dir2` 映射至 `/dir2`，访问不需要用户名和密码，可读写。
-- `"/dir3,/data/dir3,null,null,true"` 描述了一个服务，将 `/data/dir3` 映射至 `/dir3`，访问不需要用户名和密码，只读。
+- `"/dir1,/data/dir1,user1,pass1,true"` 描述了将 `/data/dir1` 映射至 `/dir1` 服务，访问需要的用户名和密码分别为 `user1` 和 `pass1`，只读(禁止上传、更新、删除)。
+- `"/dir2,/data/dir2,null,null,false"` 描述了将 `/data/dir2` 映射至 `/dir2` 服务，访问不需要验证，可读写。
+- `"/dir3,/data/dir3,null,null,true"` 描述了将 `/data/dir3` 映射至 `/dir3` 服务，访问不需要验证，只读。
+
+特别的，如果只有 1 个服务且名为 `/`，则可以直接访问 <http://localhost:80> 而不需要指定服务名。例子：
+
+- `"/,/data/dir1,user1,pass1,true"` 描述了将 `/data/dir1` 映射至 `/` 服务，访问需要的用户名和密码分别为 `user1` 和 `pass1`，只读。
 
 当 `dav` 未指定时，GoWebDAV 默认使用的 `dav` 参数为 `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false`。
 
@@ -91,6 +97,8 @@ docker run -it -d -v /data:/data -e dav="/dir1,/data/dir1,user1,pass1,true;/dir2
 ```
 
 在浏览器中打开 <http://localhost/dir1> 和 <http://localhost/dir2>，就能以 WebDAV 的形式访问磁盘文件了。
+
+通过环境变量 `dav` 传递 `data` 参数，通过 `-p 80:80` 指定映射的端口。
 
 ## Docker Compose
 
@@ -117,7 +125,7 @@ GoWebDAV 目前没有直接支持 HTTPS 的计划，因为我认为 HTTPS 涉及
 
 ## 开发
 
-见 [dev.md](./doc/dev.md)
+见 [dev.md](./doc/dev_zh_CN.md)
 
 ## 致谢
 
