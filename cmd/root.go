@@ -105,6 +105,11 @@ func Execute() error {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&dav, "dav", DEFAULT_DAV_CONFIG, "")
+	if dav == DEFAULT_DAV_CONFIG {
+		if envDav := os.Getenv("dav"); envDav != "" {
+			dav = envDav
+		}
+	}
 	rootCmd.PersistentFlags().StringVarP(&addr, "address", "a", "0.0.0.0", "address to listen")
 	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", "80", "port to listen")
 }
