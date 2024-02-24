@@ -16,7 +16,7 @@ type WebDAVServer struct {
 	smux *http.ServeMux
 }
 
-func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) (*WebDAVServer, error) {
+func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig, davListIsSecret bool) (*WebDAVServer, error) {
 	if err := checkHandlerConfigs(handlerConfigs); err != nil {
 		return nil, err
 	}
@@ -29,30 +29,15 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) (*WebDAVServe
 		handlers[cfg.Prefix] = h
 	}
 
-	// single dav mode: if there is only one handler and its prefix is "/", route all requests to it
-	enableSingleDavMode := false
-	var singleHandler *handler
-	if len(handlers) == 1 {
-		for _, h := range handlers {
-			if h.prefix == "/" {
-				log.Debug().Msg("Enable SingleDavMode")
-
-				enableSingleDavMode = true
-				singleHandler = h
-				break
-			}
+	// create a webdav.Handler for listing all available prefixes
+	memFileSystem := webdav.NewMemFS()
+	for _, cfg := range handlerConfigs {
+		if cfg.Prefix == "/" {
+			continue
 		}
-	}
-
-	var memFileSystem webdav.FileSystem
-	if !enableSingleDavMode {
-		// create a webdav.Handler for listing all available prefixes
-		memFileSystem = webdav.NewMemFS()
-		for _, cfg := range handlerConfigs {
-			if err := memFileSystem.Mkdir(context.TODO(), cfg.Prefix, os.ModeDir); err != nil {
-				log.Error().Err(err).Str("prefix", cfg.Prefix).Msg("Failed to create directory in memFileSystem")
-				continue
-			}
+		if err := memFileSystem.Mkdir(context.TODO(), cfg.Prefix, os.ModeDir); err != nil {
+			log.Error().Err(err).Str("prefix", cfg.Prefix).Msg("Failed to create directory in memFileSystem")
+			continue
 		}
 	}
 
@@ -67,17 +52,15 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig) (*WebDAVServe
 		method := req.Method
 		log.Debug().Str("URL", url).Str("Method", method).Msg("Request")
 
-		if enableSingleDavMode {
-			// TODO: ui for single dav mode
-			singleHandler.ServeHTTP(w, req)
-			return
-		}
-
 		for prefix, handler := range handlers {
 			if !strings.HasPrefix(url, prefix) {
 				continue
 			}
 			handler.ServeHTTP(w, req)
+			return
+		}
+
+		if davListIsSecret {
 			return
 		}
 

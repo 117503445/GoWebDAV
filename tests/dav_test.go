@@ -144,7 +144,7 @@ func TestMultiDav(t *testing.T) {
 			Password: "pass",
 			ReadOnly: false,
 		},
-	})
+	}, false)
 	assert.Nil(err)
 	go server.Run()
 
@@ -196,7 +196,7 @@ func TestSingleDav(t *testing.T) {
 			Password: "",
 			ReadOnly: false,
 		},
-	})
+	}, false)
 	assert.Nil(err)
 	go server.Run()
 

@@ -16,9 +16,10 @@ const DEFAULT_DAV_CONFIG = "/public-writable,./data/public-writable,null,null,fa
 
 var (
 	// Used for flags.
-	dav  string
-	addr string
-	port string
+	dav             string
+	addr            string
+	port            string
+	davListIsSecret bool
 
 	rootCmd = &cobra.Command{
 		Use: "GoWebDAV",
@@ -31,7 +32,7 @@ var (
 			if err != nil {
 				panic(err)
 			}
-			server, err := server.NewWebDAVServer(addr+":"+port, handlerConfigs)
+			server, err := server.NewWebDAVServer(addr+":"+port, handlerConfigs, davListIsSecret)
 			if err != nil {
 				panic(err)
 			}
@@ -112,4 +113,5 @@ func init() {
 	}
 	rootCmd.PersistentFlags().StringVarP(&addr, "address", "a", "0.0.0.0", "address to listen")
 	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", "80", "port to listen")
+	rootCmd.PersistentFlags().BoolVar(&davListIsSecret, "secret_dav_list", false, "don't show index with davs on /")
 }
