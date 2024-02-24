@@ -81,7 +81,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	log.Debug().Str("URL", req.URL.Path).Str("Method", req.Method).Msg("Handler Request")
-	if req.Method == "GET" && (req.URL.Path == h.prefix || req.URL.Path == h.prefix+"/") {
+	if req.Method == "GET" && (req.URL.Path == h.prefix || strings.HasSuffix(req.URL.Path, "/")) {
 		if _, err := w.Write([]byte(WebdavjsHTML)); err != nil {
 			log.Error().Err(err).Msg("Failed to write index.html")
 		}
