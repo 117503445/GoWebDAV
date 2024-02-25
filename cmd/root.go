@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -69,18 +70,27 @@ func parseDavToHandlerConfigs(dav string) (handlerConfigs []*server.HandlerConfi
 
 	davConfigs := strings.Split(dav, ";")
 	for _, davConfig := range davConfigs {
+		davConfig = strings.Trim(davConfig, " ")
+		if len(davConfig) == 0 {
+			continue
+		}
 		arr := strings.Split(davConfig, ",")
-		if len(arr) != 5 {
+		if len(arr) != 5 && len(arr) != 2 {
 			err = fmt.Errorf("invalid dav config: %s", davConfig)
 			return
 		}
 		prefix := arr[0]
 		pathDir := arr[1]
-		username := arr[2]
-		password := arr[3]
-		readonly, err := strconv.ParseBool(arr[4])
-		if err != nil {
-			readonly = false
+		username := ""
+		password := ""
+		readonly := true
+		if len(arr) == 5 {
+			username = arr[2]
+			password = arr[3]
+			readonly, err = strconv.ParseBool(arr[4])
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		handlerConfigs = append(handlerConfigs, &server.HandlerConfig{
 			Prefix:   prefix,
