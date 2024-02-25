@@ -1,0 +1,39 @@
+diff --git a/src/components/Footer.ts b/src/components/Footer.ts
+index 944535d..c6fbd7b 100644
+--- a/src/components/Footer.ts
++++ b/src/components/Footer.ts
+@@ -13,7 +13,7 @@ export default class Footer extends Element {
+ 
+   constructor(dav: DAV, state: State) {
+     super(
+-      s(`<footer class="upload">
++      s(`<footer class="upload" style="visibility: hidden;">
+   <span class="droppable">${t('dropFilesAnywhereToUpload')}</span> ${t('or')}
+   <span class="files">${t(
+     'uploadFiles'
+diff --git a/src/components/Item.ts b/src/components/Item.ts
+index 1cfde11..101aff9 100644
+--- a/src/components/Item.ts
++++ b/src/components/Item.ts
+@@ -92,21 +92,10 @@ export default class Item extends Element {
+       this.addClass('loading');
+     }
+ 
+-    if (!entry.copy) {
+       this.query('.copy').setAttribute('hidden', '');
+-    }
+-
+-    if (!entry.del) {
+       this.query('.delete').setAttribute('hidden', '');
+-    }
+-
+-    if (!entry.move) {
+       this.query('.move').setAttribute('hidden', '');
+-    }
+-
+-    if (!entry.rename) {
+       this.query('.rename').setAttribute('hidden', '');
+-    }
+ 
+     this.bindEvents();
+   }

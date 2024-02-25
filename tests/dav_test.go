@@ -105,7 +105,7 @@ func uiTest(assert *assert.Assertions, url string) {
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	assert.Nil(err)
-	assert.Equal(server.WebdavjsHTML, string(body))
+	assert.Equal(server.WebdavjsHTML, body)
 }
 
 func TestMultiDav(t *testing.T) {
