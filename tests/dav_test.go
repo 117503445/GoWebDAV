@@ -105,7 +105,7 @@ func uiTest(assert *assert.Assertions, url string) {
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	assert.Nil(err)
-	assert.Equal(server.WebdavjsHTML, string(body))
+	assert.Equal(server.WebdavjsHTML, body)
 }
 
 func TestMultiDav(t *testing.T) {
@@ -144,7 +144,7 @@ func TestMultiDav(t *testing.T) {
 			Password: "pass",
 			ReadOnly: false,
 		},
-	})
+	}, false)
 	assert.Nil(err)
 	go server.Run()
 
@@ -196,7 +196,7 @@ func TestSingleDav(t *testing.T) {
 			Password: "",
 			ReadOnly: false,
 		},
-	})
+	}, false)
 	assert.Nil(err)
 	go server.Run()
 

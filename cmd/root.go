@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -16,9 +17,10 @@ const DEFAULT_DAV_CONFIG = "/public-writable,./data/public-writable,null,null,fa
 
 var (
 	// Used for flags.
-	dav  string
-	addr string
-	port string
+	dav             string
+	addr            string
+	port            string
+	davListIsSecret bool
 
 	rootCmd = &cobra.Command{
 		Use: "GoWebDAV",
@@ -31,7 +33,7 @@ var (
 			if err != nil {
 				panic(err)
 			}
-			server, err := server.NewWebDAVServer(addr+":"+port, handlerConfigs)
+			server, err := server.NewWebDAVServer(addr+":"+port, handlerConfigs, davListIsSecret)
 			if err != nil {
 				panic(err)
 			}
@@ -68,18 +70,27 @@ func parseDavToHandlerConfigs(dav string) (handlerConfigs []*server.HandlerConfi
 
 	davConfigs := strings.Split(dav, ";")
 	for _, davConfig := range davConfigs {
+		davConfig = strings.Trim(davConfig, " ")
+		if len(davConfig) == 0 {
+			continue
+		}
 		arr := strings.Split(davConfig, ",")
-		if len(arr) != 5 {
+		if len(arr) != 5 && len(arr) != 2 {
 			err = fmt.Errorf("invalid dav config: %s", davConfig)
 			return
 		}
 		prefix := arr[0]
 		pathDir := arr[1]
-		username := arr[2]
-		password := arr[3]
-		readonly, err := strconv.ParseBool(arr[4])
-		if err != nil {
-			readonly = false
+		username := ""
+		password := ""
+		readonly := true
+		if len(arr) == 5 {
+			username = arr[2]
+			password = arr[3]
+			readonly, err = strconv.ParseBool(arr[4])
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		handlerConfigs = append(handlerConfigs, &server.HandlerConfig{
 			Prefix:   prefix,
@@ -112,4 +123,5 @@ func init() {
 	}
 	rootCmd.PersistentFlags().StringVarP(&addr, "address", "a", "0.0.0.0", "address to listen")
 	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", "80", "port to listen")
+	rootCmd.PersistentFlags().BoolVar(&davListIsSecret, "secret_dav_list", false, "don't show index with davs on /")
 }
