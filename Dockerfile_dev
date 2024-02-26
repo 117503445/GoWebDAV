@@ -1,3 +1,5 @@
 FROM 117503445/dev-golang
 
+RUN pacman -Sy npm pnpm --noconfirm
+
 WORKDIR /workspace

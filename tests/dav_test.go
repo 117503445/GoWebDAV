@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"os"
@@ -105,7 +106,9 @@ func uiTest(assert *assert.Assertions, url string) {
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	assert.Nil(err)
-	assert.Equal(server.WebdavjsHTML, body)
+
+	isHTML := bytes.Equal(body, server.WebdavjsHTML) || bytes.Equal(body, server.WebdavjsHTML_RO)
+	assert.True(isHTML)
 }
 
 func TestMultiDav(t *testing.T) {
