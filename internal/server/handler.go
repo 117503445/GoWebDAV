@@ -15,8 +15,8 @@ import (
 //go:embed webdavjs.html
 var WebdavjsHTML []byte
 
-//go:embed webdavjs-ro.html
-var WebdavjsHTML_RO []byte
+// TODO go:embed webdavjs-ro.html
+// var WebdavjsHTML_RO []byte
 
 type HandlerConfig struct {
 	Prefix   string
@@ -87,7 +87,8 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "GET" && (req.URL.Path == h.prefix || strings.HasSuffix(req.URL.Path, "/")) {
 		var page *[]byte
 		if h.readOnly {
-			page = &WebdavjsHTML_RO
+			// page = &WebdavjsHTML_RO
+			page = &WebdavjsHTML
 		} else {
 			page = &WebdavjsHTML
 		}

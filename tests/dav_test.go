@@ -107,7 +107,8 @@ func uiTest(assert *assert.Assertions, url string) {
 	body, err := io.ReadAll(resp.Body)
 	assert.Nil(err)
 
-	isHTML := bytes.Equal(body, server.WebdavjsHTML) || bytes.Equal(body, server.WebdavjsHTML_RO)
+	// isHTML := bytes.Equal(body, server.WebdavjsHTML) || bytes.Equal(body, server.WebdavjsHTML_RO)
+	isHTML := bytes.Equal(body, server.WebdavjsHTML)
 	assert.True(isHTML)
 }
 

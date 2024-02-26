@@ -70,7 +70,7 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig, davListIsSecr
 		}
 
 		if method == "GET" && url == "/" {
-			if _, err := w.Write(WebdavjsHTML_RO); err != nil {
+			if _, err := w.Write(WebdavjsHTML); err != nil {
 				log.Error().Err(err).Msg("Failed to write index.html")
 			}
 			return
