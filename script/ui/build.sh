@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-make() {
+set -e
+
+make_html() {
   cat > $1 <<EOL
 <!DOCTYPE html>
 <html lang="en">
@@ -22,11 +24,11 @@ EOL
 
 # Clean
 cd "$(dirname "$0")"
-rm webdavjs.html webdavjs-ro.html
+rm -f webdavjs.html webdavjs-ro.html
 
 # Prepare
 if [ ! -d webdav-js ]; then
-  git clone https://github.com/dom111/webdav-js
+  git clone --depth 1 https://github.com/dom111/webdav-js
   cd webdav-js
   pnpm i
   cd ..
@@ -34,18 +36,22 @@ fi
 
 # Make original
 cd webdav-js
-pnpm run build
+set +e
+pnpm run build >/dev/null 2>&1
+set -e
 cd ..
-make webdavjs.html
+make_html webdavjs.html
 
 # Make read-only
 cd webdav-js
 git apply ../hide.patch
-pnpm run build
+set +e
+pnpm run build >/dev/null 2>&1
+set -e
 cd ..
-make webdavjs-ro.html
+make_html webdavjs-ro.html
 cd webdav-js
 git apply --reverse ../hide.patch
 cd ..
 
-cp webdavjs* ../internal/server
+mv webdavjs* ../../internal/server

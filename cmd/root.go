@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	_ "GoWebDAV/internal/common"
 	"GoWebDAV/internal/server"
 
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +27,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			if dav == DEFAULT_DAV_CONFIG {
 				createDefaultDirs()
+				log.Info().Str("dav", dav).Msg("Default dav config is used")
 			}
 
 			handlerConfigs, err := parseDavToHandlerConfigs(dav)
@@ -89,7 +90,7 @@ func parseDavToHandlerConfigs(dav string) (handlerConfigs []*server.HandlerConfi
 			password = arr[3]
 			readonly, err = strconv.ParseBool(arr[4])
 			if err != nil {
-				log.Fatal(err)
+				log.Err(err).Msg("Failed to parse readonly")
 			}
 		}
 		handlerConfigs = append(handlerConfigs, &server.HandlerConfig{

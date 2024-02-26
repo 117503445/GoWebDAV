@@ -19,3 +19,7 @@ go test ./... # 测试
 
 docker build -t 117503445/go_webdav . # 构建 Docker 镜像
 ```
+
+## 前端构建
+
+见 `./script/ui`
