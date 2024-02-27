@@ -28,7 +28,7 @@ rm -f webdavjs.html webdavjs-ro.html
 
 # Prepare
 if [ ! -d webdav-js ]; then
-  git clone --depth 1 https://github.com/dom111/webdav-js
+  git clone --depth 1 https://github.com/Jipok/webdav-js # TODO: check commit is 63f2817b15f7b1309da886a67341ed626a838b16
   cd webdav-js
   pnpm i
   cd ..
@@ -41,17 +41,5 @@ pnpm run build >/dev/null 2>&1
 set -e
 cd ..
 make_html webdavjs.html
-
-# Make read-only
-cd webdav-js
-git apply ../hide.patch
-set +e
-pnpm run build >/dev/null 2>&1
-set -e
-cd ..
-make_html webdavjs-ro.html
-cd webdav-js
-git apply --reverse ../hide.patch
-cd ..
 
 mv webdavjs* ../../internal/server

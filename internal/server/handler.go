@@ -15,9 +15,6 @@ import (
 //go:embed webdavjs.html
 var WebdavjsHTML []byte
 
-// TODO go:embed webdavjs-ro.html
-// var WebdavjsHTML_RO []byte
-
 type HandlerConfig struct {
 	Prefix   string
 	PathDir  string
@@ -85,14 +82,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	log.Debug().Str("URL", req.URL.Path).Str("Method", req.Method).Msg("Handler Request")
 	if req.Method == "GET" && (req.URL.Path == h.prefix || strings.HasSuffix(req.URL.Path, "/")) {
-		var page *[]byte
-		if h.readOnly {
-			// page = &WebdavjsHTML_RO
-			page = &WebdavjsHTML
-		} else {
-			page = &WebdavjsHTML
-		}
-		if _, err := w.Write(*page); err != nil {
+		if _, err := w.Write(WebdavjsHTML); err != nil {
 			log.Error().Err(err).Msg("Failed to write index.html")
 		}
 		return
