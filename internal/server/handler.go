@@ -8,12 +8,20 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Jipok/webdavWithPATCH"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/webdav"
 )
 
 //go:embed webdavjs.html
 var WebdavjsHTML []byte
+
+var readOnlyMethods = map[string]bool{
+	"GET":      true,
+	"OPTIONS":  true,
+	"PROPFIND": true,
+	"HEAD":     true,
+}
 
 type HandlerConfig struct {
 	Prefix   string
@@ -24,7 +32,7 @@ type HandlerConfig struct {
 }
 
 type handler struct {
-	handler *webdav.Handler
+	handler *webdavWithPATCH.Handler
 
 	prefix  string // URL prefix
 	dirPath string // File system directory
@@ -37,10 +45,12 @@ type handler struct {
 
 func NewHandler(cfg *HandlerConfig) *handler {
 	return &handler{
-		handler: &webdav.Handler{
-			FileSystem: webdav.Dir(cfg.PathDir),
-			LockSystem: webdav.NewMemLS(),
-			Prefix:     cfg.Prefix,
+		handler: &webdavWithPATCH.Handler{
+			Handler: webdav.Handler{
+				FileSystem: webdav.Dir(cfg.PathDir),
+				LockSystem: webdav.NewMemLS(),
+				Prefix:     cfg.Prefix,
+			},
 		},
 		prefix:   cfg.Prefix,
 		dirPath:  cfg.PathDir,
@@ -68,28 +78,16 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if h.readOnly {
-		allowedMethods := map[string]bool{
-			"GET":      true,
-			"OPTIONS":  true,
-			"PROPFIND": true,
-			"HEAD":     true,
-		}
-		if !allowedMethods[req.Method] {
+		if !readOnlyMethods[req.Method] {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
 	}
 
-	log.Debug().Str("URL", req.URL.Path).Str("Method", req.Method).Msg("Handler Request")
 	if req.Method == "GET" && (req.URL.Path == h.prefix || strings.HasSuffix(req.URL.Path, "/")) {
 		if _, err := w.Write(WebdavjsHTML); err != nil {
 			log.Error().Err(err).Msg("Failed to write index.html")
 		}
-		return
-	}
-
-	if req.Method == "HEAD" {
-		// for ui
 		return
 	}
 

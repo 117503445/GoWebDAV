@@ -1,6 +1,6 @@
 module GoWebDAV
 
-go 1.22
+go 1.22.0
 
 require (
 	github.com/spf13/pflag v1.0.5
@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/Jipok/webdavWithPATCH v0.0.0-20240302180837-a05d5c379531 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

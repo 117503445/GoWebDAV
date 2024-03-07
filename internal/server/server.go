@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Jipok/webdavWithPATCH"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/net/webdav"
 )
@@ -41,16 +42,22 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig, davListIsSecr
 		}
 	}
 
-	indexHandler := &webdav.Handler{
-		FileSystem: memFileSystem,
-		LockSystem: webdav.NewMemLS(),
-		Prefix:     "/",
+	indexHandler := &webdavWithPATCH.Handler{
+		Handler: webdav.Handler{
+			FileSystem: memFileSystem,
+			LockSystem: webdav.NewMemLS(),
+			Prefix:     "/",
+		},
 	}
 
 	sMux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		url := req.URL.Path
 		method := req.Method
 		log.Debug().Str("URL", url).Str("Method", method).Msg("Request")
+
+		if req.Method == "HEAD" && strings.HasSuffix(req.URL.Path, "/") {
+			return // Fixes error for ui
+		}
 
 		for prefix, handler := range handlers {
 			if !strings.HasPrefix(url, prefix) {
@@ -64,9 +71,8 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig, davListIsSecr
 			return
 		}
 
-		if method == "PROPFIND" && url == "/" {
-			indexHandler.ServeHTTP(w, req)
-			return
+		if !readOnlyMethods[req.Method] {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 
 		if method == "GET" && url == "/" {
@@ -76,11 +82,7 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig, davListIsSecr
 			return
 		}
 
-		if method == "HEAD" || method == "OPTIONS" {
-			return
-		}
-
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		indexHandler.ServeHTTP(w, req)
 	})
 	return &WebDAVServer{
 		addr: addr,
