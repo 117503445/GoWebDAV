@@ -1,3 +1,5 @@
+github.com/Jipok/webdavWithPATCH v0.0.0-20240302180837-a05d5c379531 h1:9lz1Cu/xucNpEWyOuEcjf3O1kffvyyP2OktsntVN0PE=
+github.com/Jipok/webdavWithPATCH v0.0.0-20240302180837-a05d5c379531/go.mod h1:CrtElQD0FnMDFcFhEZj6LLLuz2x2cV2mjIJwpjvHKdE=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
