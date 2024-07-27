@@ -10,8 +10,11 @@ import (
 	"GoWebDAV/internal/server"
 
 	"github.com/117503445/goutils"
+	"github.com/knadh/koanf/v2"
 	"github.com/rs/zerolog/log"
 )
+
+const DEFAULT_DAV_CONFIG = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
 
 // createDefaultDirs creates default directories when dav is not set
 func createDefaultDirs() {
@@ -23,17 +26,39 @@ func createDefaultDirs() {
 	for _, dir := range dirs {
 		if _, err := os.Stat(dir); os.IsNotExist(err) {
 			if err = os.MkdirAll(dir, os.ModePerm); err != nil {
-				panic(err)
+				log.Fatal().Err(err).Msg("Failed to create default directories")
 			}
 
 			if err = os.WriteFile(dir+"/1.txt", []byte("Hello"), 0644); err != nil {
-				panic(err)
+				log.Fatal().Err(err).Msg("Failed to write file")
 			}
 		} else if err != nil {
-			panic(err)
+			log.Fatal().Err(err).Msg("Failed to check directory")
 		}
 	}
+}
 
+func isDefaultHandlerConfigs(handlerConfig []*server.HandlerConfig) bool {
+	defaultHandlerConfigs, err := parseDavToHandlerConfigs(DEFAULT_DAV_CONFIG)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to parse default dav")
+	}
+
+	if len(handlerConfig) != len(defaultHandlerConfigs) {
+		return false
+	}
+
+	for i, hc := range handlerConfig {
+		if hc.Prefix != defaultHandlerConfigs[i].Prefix ||
+			hc.PathDir != defaultHandlerConfigs[i].PathDir ||
+			hc.Username != defaultHandlerConfigs[i].Username ||
+			hc.Password != defaultHandlerConfigs[i].Password ||
+			hc.ReadOnly != defaultHandlerConfigs[i].ReadOnly {
+			println(hc.Prefix, defaultHandlerConfigs[i].Prefix)
+			return false
+		}
+	}
+	return true
 }
 
 func parseDavToHandlerConfigs(dav string) (handlerConfigs []*server.HandlerConfig, err error) {
@@ -74,8 +99,63 @@ func parseDavToHandlerConfigs(dav string) (handlerConfigs []*server.HandlerConfi
 	return handlerConfigs, nil
 }
 
+func parseDavsToHandlerConfigs(davs []*koanf.Koanf) (handlerConfigs []*server.HandlerConfig, err error) {
+	for _, d := range davs {
+		prefix := d.String("prefix")
+		pathDir := d.String("pathDir")
+		username := d.String("username")
+		password := d.String("password")
+		readOnly := d.Bool("readOnly")
+		handlerConfigs = append(handlerConfigs, &server.HandlerConfig{
+			Prefix:   prefix,
+			PathDir:  pathDir,
+			Username: username,
+			Password: password,
+			ReadOnly: readOnly,
+		})
+	}
+	return handlerConfigs, nil
+}
+
+// dav: from cli, config file, env or default. format: prefix,pathDir,username,password,readonly;...
+// davs: from config file, which is designed for convenience writing in config file.
+func getHandlerConfigs(dav string, davs []*koanf.Koanf) (handlerConfigs []*server.HandlerConfig) {
+	// if davs is set and dav == DEFAULT_DAV_CONFIG, use davs and not create default dirs
+	// else, merge davs and dav
+
+	handlerConfigs = make([]*server.HandlerConfig, 0)
+	var err error
+
+	if len(davs) > 0 {
+		davsHandlerConfigs, err := parseDavsToHandlerConfigs(davs)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to parse davs")
+		}
+		for _, handlerConfig := range davsHandlerConfigs {
+			log.Debug().Interface("handlerConfig", handlerConfig).Msg("davs")
+		}
+
+		if dav == DEFAULT_DAV_CONFIG {
+			return davsHandlerConfigs
+		}
+
+		handlerConfigs = append(handlerConfigs, davsHandlerConfigs...)
+	}
+
+	davHandlerConfigs, err := parseDavToHandlerConfigs(dav)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to parse dav")
+	}
+
+	for _, handlerConfig := range davHandlerConfigs {
+		log.Debug().Interface("handlerConfig", handlerConfig).Msg("dav")
+	}
+
+	handlerConfigs = append(handlerConfigs, davHandlerConfigs...)
+	return handlerConfigs
+}
+
 func Execute() {
-	const DEFAULT_DAV_CONFIG = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
 
 	type Config struct {
 		Address         string `koanf:"address"`
@@ -89,28 +169,22 @@ func Execute() {
 		Dav:             DEFAULT_DAV_CONFIG,
 		DavListIsSecret: false,
 	}
-
-	goutils.LoadConfig(cfg)
-
+	result := goutils.LoadConfig(cfg)
 	log.Info().Interface("config", cfg).Msg("Config")
 
-	if cfg.Dav == DEFAULT_DAV_CONFIG {
+	handlerConfigs := getHandlerConfigs(cfg.Dav, result.K.Slices("davs"))
+
+	if isDefaultHandlerConfigs(handlerConfigs) {
 		createDefaultDirs()
 		log.Info().Msg("Default dav config is used, created default directories")
 	}
 
-	handlerConfigs, err := parseDavToHandlerConfigs(cfg.Dav)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, handlerConfig := range handlerConfigs {
-		log.Debug().Str("prefix", handlerConfig.Prefix).Str("pathDir", handlerConfig.PathDir).Str("username", handlerConfig.Username).Str("password", handlerConfig.Password).Bool("readonly", handlerConfig.ReadOnly).Msg("Dav")
-	}
-
 	server, err := server.NewWebDAVServer(cfg.Address+":"+cfg.Port, handlerConfigs, cfg.DavListIsSecret)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("Failed to create server")
 	}
-	server.Run()
+	err = server.Run()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to run server")
+	}
 }

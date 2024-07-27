@@ -90,9 +90,10 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig, davListIsSecr
 	}, nil
 }
 
-func (s *WebDAVServer) Run() {
+func (s *WebDAVServer) Run() error {
 	log.Info().Str("addr", "http://"+s.addr).Msg("WebDAV server started")
 	if err := http.ListenAndServe(s.addr, s.smux); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
