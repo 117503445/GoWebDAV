@@ -1,8 +1,7 @@
-version: '3.9'
 services:
   gowebdav-dev:
     build:
-      dockerfile: Dockerfile_dev
+      dockerfile: Dockerfile.dev
     container_name: gowebdav-dev
 
     volumes:

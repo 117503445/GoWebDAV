@@ -9,38 +9,8 @@ import (
 	_ "GoWebDAV/internal/common"
 	"GoWebDAV/internal/server"
 
+	"github.com/117503445/goutils"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/cobra"
-)
-
-const DEFAULT_DAV_CONFIG = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
-
-var (
-	// Used for flags.
-	dav             string
-	addr            string
-	port            string
-	davListIsSecret bool
-
-	rootCmd = &cobra.Command{
-		Use: "GoWebDAV",
-		Run: func(cmd *cobra.Command, args []string) {
-			if dav == DEFAULT_DAV_CONFIG {
-				createDefaultDirs()
-				log.Info().Str("dav", dav).Msg("Default dav config is used")
-			}
-
-			handlerConfigs, err := parseDavToHandlerConfigs(dav)
-			if err != nil {
-				panic(err)
-			}
-			server, err := server.NewWebDAVServer(addr+":"+port, handlerConfigs, davListIsSecret)
-			if err != nil {
-				panic(err)
-			}
-			server.Run()
-		},
-	}
 )
 
 // createDefaultDirs creates default directories when dav is not set
@@ -104,25 +74,43 @@ func parseDavToHandlerConfigs(dav string) (handlerConfigs []*server.HandlerConfi
 	return handlerConfigs, nil
 }
 
-// Execute executes the root command.
-func Execute() error {
-	// fmt.Println(rootCmd.UsageTemplate())
-	rootCmd.SetUsageTemplate("Flags:\n{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}")
+func Execute() {
+	const DEFAULT_DAV_CONFIG = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
 
-	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-		fmt.Println(rootCmd.UsageString())
-	})
-	return rootCmd.Execute()
-}
-
-func init() {
-	rootCmd.PersistentFlags().StringVar(&dav, "dav", DEFAULT_DAV_CONFIG, "")
-	if dav == DEFAULT_DAV_CONFIG {
-		if envDav := os.Getenv("dav"); envDav != "" {
-			dav = envDav
-		}
+	type Config struct {
+		Address         string `koanf:"address"`
+		Port            string `koanf:"port"`
+		Dav             string `koanf:"dav" usage:"dav config, format: prefix,pathDir,username,password,readonly;..."`
+		DavListIsSecret bool   `koanf:"secret_dav_list" usage:"if true, hide the dav list"`
 	}
-	rootCmd.PersistentFlags().StringVarP(&addr, "address", "a", "0.0.0.0", "address to listen")
-	rootCmd.PersistentFlags().StringVarP(&port, "port", "p", "80", "port to listen")
-	rootCmd.PersistentFlags().BoolVar(&davListIsSecret, "secret_dav_list", false, "don't show index with davs on /")
+	cfg := &Config{
+		Address:         "0.0.0.0",
+		Port:            "80",
+		Dav:             DEFAULT_DAV_CONFIG,
+		DavListIsSecret: false,
+	}
+
+	goutils.LoadConfig(cfg)
+
+	log.Info().Interface("config", cfg).Msg("Config")
+
+	if cfg.Dav == DEFAULT_DAV_CONFIG {
+		createDefaultDirs()
+		log.Info().Msg("Default dav config is used, created default directories")
+	}
+
+	handlerConfigs, err := parseDavToHandlerConfigs(cfg.Dav)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, handlerConfig := range handlerConfigs {
+		log.Debug().Str("prefix", handlerConfig.Prefix).Str("pathDir", handlerConfig.PathDir).Str("username", handlerConfig.Username).Str("password", handlerConfig.Password).Bool("readonly", handlerConfig.ReadOnly).Msg("Dav")
+	}
+
+	server, err := server.NewWebDAVServer(cfg.Address+":"+cfg.Port, handlerConfigs, cfg.DavListIsSecret)
+	if err != nil {
+		panic(err)
+	}
+	server.Run()
 }
