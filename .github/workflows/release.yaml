@@ -26,6 +26,8 @@ jobs:
       - run: CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -ldflags "-s -w" -o gowebdav_windows_arm64.exe .
       - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o gowebdav_darwin_arm64 .
 
+      - run: cp config.toml.example config.toml
+
       - name: Release
         uses: softprops/action-gh-release@v1
         with:

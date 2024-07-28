@@ -103,19 +103,21 @@ docker run -it -d -v /data:/data -e dav="/dir1,/data/dir1,user1,pass1,true;/dir2
 ## Docker Compose
 
 ```yaml
-version: "3.8"
 services:
   go_webdav:
     image: 117503445/go_webdav
-    container_name: go_webdav
     restart: unless-stopped
     volumes:
       - /data:/data
     environment:
       - "dav=/dir1,/data/dir1,user1,pass1,true;/dir2,/data/dir2,null,null,false"
     ports:
-      - "80:80" 
+      - "80:80"
 ```
+
+## 配置
+
+GoWebDAV 支持通过环境变量、命令行参数、配置文件等方式配置 WebDAV 服务，本文的上述例子是 GowebDAV 的典型使用方式。如果上述例子无法满足你的需求，可以参考 [配置](./doc/config.md)。
 
 ## 安全
 
