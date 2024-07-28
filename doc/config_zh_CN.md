@@ -18,7 +18,7 @@ ADDRESS=0.0.0.0 PORT=80 DAV="/public-writable,./data/public-writable,null,null,f
 
 ### 二进制 & 配置文件
 
-Download [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/download/config.toml) beside the binary file `gowebdav`, and then run:
+下载 [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/download/config.toml)，并将其放置在二进制文件 `gowebdav` 旁边，然后运行：
 
 ```sh
 ./gowebdav
@@ -52,7 +52,7 @@ services:
       - "80:80"
 ```
 
-Download [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/download/config.toml) beside the `docker-compose.yml`, and then run:
+下载 [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/download/config.toml)，并将其放置在二进制文件 `gowebdav` 旁边，然后运行：
 
 ```sh
 docker compose up -d
