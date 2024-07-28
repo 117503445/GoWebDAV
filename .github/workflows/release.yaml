@@ -38,5 +38,6 @@ jobs:
             gowebdav_linux_arm64
             gowebdav_windows_arm64.exe
             gowebdav_darwin_arm64
+            config.toml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
