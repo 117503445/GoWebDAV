@@ -18,9 +18,7 @@ ADDRESS=0.0.0.0 PORT=80 DAV="/public-writable,./data/public-writable,null,null,f
 
 ### 二进制 & 配置文件
 
-<!-- TODO -->
-
-Download [config.toml](https://raw.githubusercontent.com/117503445/GoWebDAV/master/config.toml) beside the binary file `gowebdav`, and then run:
+Download [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/download/config.toml) beside the binary file `gowebdav`, and then run:
 
 ```sh
 ./gowebdav
