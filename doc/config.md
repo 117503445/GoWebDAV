@@ -1,22 +1,22 @@
-# 配置
+# Configuration
 
-GoWebDAV 能从多种来源读取配置，且具有高度的灵活性。本文中，我会先给出一些使用的例子。如果无法满足你的需求，可以查看 *说明* 章节，了解更具体的配置方式。
+GoWebDAV can read configurations from multiple sources and is highly flexible. In this article, I will first provide some usage examples. If these do not meet your needs, you can check the *Description* section for more specific ways to configure.
 
-## 例子
+## Examples
 
-### 二进制 & 命令行参数
+### Binary & Command Line Arguments
 
 ```sh
 ./gowebdav --address 0.0.0.0 --port 80 --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
 ```
 
-### 二进制 & 环境变量
+### Binary & Environment Variables
 
 ```sh
 ADDRESS=0.0.0.0 PORT=80 DAV="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false" ./gowebdav
 ```
 
-### 二进制 & 配置文件
+### Binary & Configuration File
 
 Download [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/download/config.toml) beside the binary file `gowebdav`, and then run:
 
@@ -24,20 +24,20 @@ Download [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/dow
 ./gowebdav
 ```
 
-### Docker & `-e` 环境变量
+### Docker & `-e` Environment Variables
 
 ```sh
-docker
+docker run -it -d -v ./data:/workspace/data -e dav="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false" -p 80:80 --restart=unless-stopped 117503445/go_webdav
 ```
 
-### Docker & CLI 参数
+### Docker & CLI Arguments
 
 ```sh
+docker run --rm 117503445/go_webdav --help # View help
+docker run -it -d -v ./data:/workspace/data -p 80:80 --restart=unless-stopped 117503445/go_webdav --address 0.0.0.0 --port 80 --dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"
 ```
 
-### Docker Compose & 配置文件
-
-Download 
+### Docker Compose & Configuration File
 
 ```yaml
 # docker-compose.yml
@@ -52,26 +52,28 @@ services:
       - "80:80"
 ```
 
+Download [config.toml](https://github.com/117503445/GoWebDAV/releases/latest/download/config.toml) beside the `docker-compose.yml`, and then run:
+
 ```sh
 docker compose up -d
 ```
 
-## 说明
+## Description
 
-GoWebDAV 能从多种来源读取配置，优先级从高到低依次是：CLI 参数、配置文件、环境变量、默认值。
+GoWebDAV can read configurations from various sources, with a priority order from high to low as follows: CLI arguments, configuration files, environment variables, default values.
 
-其中，配置文件路径的默认值是 `config.toml`。当然，配置文件路径也是可以更改的。通过 CONFIG 环境变量可以指定配置文件路径，如 `CONFIG=/path/to/config.toml ./gowebdav`。CLI 也可以改变配置文件路径，且具有比环境变量更高的优先级，如 `./gowebdav --config /path/to/config.toml`。甚至，你还可以传入多个配置文件路径，用 `,` 分隔，如 `./gowebdav --config /path/to/config1.toml,/path/to/config2.toml`。如果出现了重复的配置项，后面的配置文件会覆盖前面的。如果配置文件路径是相对路径的形式，如 `config.toml`，那么会优先尝试解析为可执行文件同目录下的文件，如果不存在，再尝试解析为当前工作目录下的文件。
+The default path for the configuration file is `config.toml`. Of course, this can be changed. You can specify the path to the configuration file through the CONFIG environment variable, such as `CONFIG=/path/to/config.toml ./gowebdav`. The CLI can also change the configuration file path, with a higher priority than environment variables, such as `./gowebdav --config /path/to/config.toml`. Moreover, you can pass multiple configuration file paths separated by a comma, such as `./gowebdav --config /path/to/config1.toml,/path/to/config2.toml`. If there are duplicate configuration items, the later configuration file will override the earlier ones. If the configuration file path is a relative path, such as `config.toml`, it will first attempt to resolve it as a file in the same directory as the executable; if it does not exist, it will then try to resolve it as a file in the current working directory.
 
-对于下列配置项，同时支持从 CLI 参数、配置文件、环境变量、默认值中读取：
+The following configuration items support reading from CLI arguments, configuration files, environment variables, and default values:
 
-| 配置项 | 类型 | 默认值 | 说明 | CLI | 配置文件 | 环境变量 |
+| Configuration Item | Type | Default Value | Description | CLI | Configuration File | Environment Variable |
 | --- | --- | --- | --- | --- | --- | --- |
-| `address` | `string` | `0.0.0.0` | 监听地址 | `--address 0.0.0.0` | `address = "0.0.0.0"` | `ADDRESS=0.0.0.0` |
-| `port` | `int` | `80` | 监听端口 | `--port 80` | `port = 80` | `PORT=80` |
-| `dav` | `string` | `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false` | WebDAV 服务配置 | `--dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `dav = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `DAV="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` |
-| `secret_dav_list` | `bool` | `false` | 是否隐藏 WebDAV 服务列表 | `--secret-dav-list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
+| `address` | `string` | `0.0.0.0` | Listening address | `--address 0.0.0.0` | `address = "0.0.0.0"` | `ADDRESS=0.0.0.0` |
+| `port` | `int` | `80` | Listening port | `--port 80` | `port = 80` | `PORT=80` |
+| `dav` | `string` | `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false` | WebDAV service configuration | `--dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `dav = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `DAV="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` |
+| `secret_dav_list` | `bool` | `false` | Whether to hide the WebDAV service list | `--secret-dav-list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
 
-其中，`dav` 适合在 CLI 和 环境变量中使用，可以用单行的形式简便地配置多个 WebDAV 服务。但是在配置文件中，这种写法的可读性较差。为了提升配置文件的使用体验，你可以在配置文件中使用 `davs` 字段，如下：
+`dav` is suitable for use in CLI and environment variables because it allows you to conveniently configure multiple WebDAV services in a single line. However, this format is less readable in configuration files. To enhance the usability of configuration files, you can use the `davs` field as follows:
 
 ```toml
 # each [[davs]] block serves a folder to a sub WebDAV server
@@ -98,6 +100,6 @@ password = "pass1"
 readOnly = false
 ```
 
-GoWebDAV 会同时解析 `davs` 和 `dav` 字段，并将解析结果合并。如果定义了 `davs` 字段，且 `dav` 字段是默认值，那么会忽略 `dav` 字段；如果解析出的最终 dav 配置和默认值相同，就会自动创建实例文件夹及文件，方便用户快速上手。
+GoWebDAV will parse both the `davs` and `dav` fields and merge the results. If the `davs` field is defined and the `dav` field is the default value, then the `dav` field will be ignored; if the final dav configuration parsed is the same as the default, instance folders and files will be automatically created to facilitate quick start-up.
 
-好吧，我承认，GoWebDAV 的配置逻辑比较复杂，且各个配置方式不正交，存在很多特例。但是，这样的设计是为了让各种用户都有良好的使用体验。祝使用愉快！
+Admittedly, the configuration logic of GoWebDAV is somewhat complex, and the various configuration methods are not orthogonal, with many special cases. However, this design aims to provide a good user experience for all types of users. Enjoy using it!

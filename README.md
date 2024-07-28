@@ -103,19 +103,21 @@ Pass the `data` parameter through the environment variable `dav` and specify the
 ## Docker Compose
 
 ```yaml
-version: "3.8"
 services:
   go_webdav:
     image: 117503445/go_webdav
-    container_name: go_webdav
     restart: unless-stopped
     volumes:
       - /data:/data
     environment:
       - "dav=/dir1,/data/dir1,user1,pass1,true;/dir2,/data/dir2,null,null,false"
     ports:
-      - "80:80" 
+      - "80:80"
 ```
+
+## Configuration
+
+GoWebDAV supports configuring the WebDAV service through environment variables, command-line arguments, configuration files, and other methods. The examples mentioned above are typical uses of GoWebDAV. If these examples do not meet your needs, you can refer to the [Configuration](./doc/config.md) documentation.
 
 ## Security
 
