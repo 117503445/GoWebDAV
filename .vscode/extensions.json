@@ -2,6 +2,7 @@
     "recommendations": [
         "mhutchie.git-graph",
         "golang.go",
-        "github.copilot"
+        "github.copilot",
+        "tamasfe.even-better-toml"
     ]
 }

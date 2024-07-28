@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,7 +12,7 @@ const UnExistDir = "/114514"
 
 func TestMain(m *testing.M) {
 	if _, err := os.Stat(UnExistDir); err == nil {
-		panic(UnExistDir + " should not exist")
+		log.Fatal().Str("dir", UnExistDir).Msg("UnExistDir should not exist")
 	}
 
 	code := m.Run()

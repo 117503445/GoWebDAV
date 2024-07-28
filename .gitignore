@@ -21,3 +21,5 @@ config.yml
 GoWebDAV
 data
 .pnpm-store
+
+config.toml

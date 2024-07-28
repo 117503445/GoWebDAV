@@ -5,6 +5,7 @@ go 1.22.5
 require (
 	github.com/117503445/goutils v0.0.0-20240727145325-52e6159fc3a2
 	github.com/Jipok/webdavWithPATCH v0.0.0-20240302195454-983fa094acfc
+	github.com/knadh/koanf/v2 v2.1.1
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	github.com/studio-b12/gowebdav v0.9.0
@@ -22,7 +23,6 @@ require (
 	github.com/knadh/koanf/providers/file v1.0.0 // indirect
 	github.com/knadh/koanf/providers/posflag v0.1.0 // indirect
 	github.com/knadh/koanf/providers/structs v0.1.0 // indirect
-	github.com/knadh/koanf/v2 v2.1.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

@@ -1,0 +1,26 @@
+address = "0.0.0.0" # listen address
+port = 80 # listen port
+secret_dav_list = false # whether to hide the list of DAVs in index page
+
+# each [[davs]] block serves a folder to a sub WebDAV server
+[[davs]]
+prefix = "/public-writable" # URL prefix, visit http://localhost/public-writable to access in browser, or use WebDAV client
+pathDir = "./data/public-writable" # local folder to serve
+# username and password for basic auth, set both to "null" to disable auth
+username = "null"
+password = "null"
+readOnly = false # whether to allow write operations(POST, PUT, DELETE)
+
+[[davs]]
+prefix = "/public-readonly"
+pathDir = "./data/public-readonly"
+username = "null"
+password = "null"
+readOnly = true
+
+[[davs]]
+prefix = "/private-writable"
+pathDir = "./data/private-writable"
+username = "user1"
+password = "pass1"
+readOnly = false
