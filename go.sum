@@ -1,5 +1,5 @@
-github.com/117503445/goutils v0.0.0-20240727145325-52e6159fc3a2 h1:2AvGVUzUzs1T5TyeHlzFNPO3BbPRtRvhGxIk9VEMsG0=
-github.com/117503445/goutils v0.0.0-20240727145325-52e6159fc3a2/go.mod h1:JYlN0ibDEXMYOut0ElBJ+TTTPGzLSTtuo/b4q9MpDJc=
+github.com/117503445/goutils v0.0.0-20240817174202-5acdd3965205 h1:8YTbaB1z7a0ySXHx4KunyY8X8ETpHiyxqHE4KCOFucc=
+github.com/117503445/goutils v0.0.0-20240817174202-5acdd3965205/go.mod h1:JYlN0ibDEXMYOut0ElBJ+TTTPGzLSTtuo/b4q9MpDJc=
 github.com/Jipok/webdavWithPATCH v0.0.0-20240302195454-983fa094acfc h1:H+3zTKxuBCryqlOLHexpV32rGrk/b2oOp+ZHivklzn0=
 github.com/Jipok/webdavWithPATCH v0.0.0-20240302195454-983fa094acfc/go.mod h1:CrtElQD0FnMDFcFhEZj6LLLuz2x2cV2mjIJwpjvHKdE=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
