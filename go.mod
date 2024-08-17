@@ -3,7 +3,7 @@ module GoWebDAV
 go 1.22.5
 
 require (
-	github.com/117503445/goutils v0.0.0-20240817174202-5acdd3965205
+	github.com/117503445/goutils v0.0.0-20240817175023-c208c6d669ae
 	github.com/Jipok/webdavWithPATCH v0.0.0-20240302195454-983fa094acfc
 	github.com/knadh/koanf/v2 v2.1.1
 	github.com/rs/zerolog v1.33.0
