@@ -115,6 +115,8 @@ services:
       - "80:80"
 ```
 
+如果需要在非 root 用户的环境下使用 Docker 运行 Gowebdav，可以参考 [nonroot](./doc/nonroot_zh_CN.md)。
+
 ## 配置
 
 GoWebDAV 支持通过环境变量、命令行参数、配置文件等方式配置 WebDAV 服务，本文的上述例子是 GowebDAV 的典型使用方式。如果上述例子无法满足你的需求，可以参考 [配置](./doc/config_zh_CN.md)。

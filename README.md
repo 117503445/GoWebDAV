@@ -115,6 +115,8 @@ services:
       - "80:80"
 ```
 
+If you need to run Gowebdav using Docker in a non-root user environment, you can refer to [nonroot](./doc/nonroot.md).
+
 ## Configuration
 
 GoWebDAV supports configuring the WebDAV service through environment variables, command-line arguments, configuration files, and other methods. The examples mentioned above are typical uses of GoWebDAV. If these examples do not meet your needs, you can refer to the [Configuration](./doc/config.md) documentation.
