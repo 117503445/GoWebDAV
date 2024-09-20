@@ -1,4 +1,4 @@
-module GoWebDAV
+module github.com/117503445/GoWebDAV
 
 go 1.22.5
 
