@@ -1,6 +1,6 @@
-module GoWebDAV
+module github.com/117503445/GoWebDAV
 
-go 1.22.5
+go 1.23.1
 
 require (
 	github.com/117503445/goutils v0.0.0-20240817175023-c208c6d669ae

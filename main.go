@@ -1,7 +1,7 @@
 package main
 
 import (
-	"GoWebDAV/cmd"
+	"github.com/117503445/GoWebDAV/cmd"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	_ "GoWebDAV/internal/common"
-	"GoWebDAV/internal/server"
+	_ "github.com/117503445/GoWebDAV/internal/common"
+	"github.com/117503445/GoWebDAV/internal/server"
 
 	"github.com/117503445/goutils"
 	"github.com/knadh/koanf/v2"

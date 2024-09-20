@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"GoWebDAV/internal/server"
+	"github.com/117503445/GoWebDAV/internal/server"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/studio-b12/gowebdav"
