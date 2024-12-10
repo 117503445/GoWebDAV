@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/studio-b12/gowebdav"
+	"github.com/traefik/yaegi/interp"
+	"github.com/traefik/yaegi/stdlib"
 )
 
 func TestMain(m *testing.M) {
@@ -208,4 +211,36 @@ func TestSingleDav(t *testing.T) {
 	untilConnected(assert, client)
 
 	apiTest(assert, client)
+}
+
+func TestPlugin(t *testing.T) {
+	ast := assert.New(t)
+	const src = `package foo
+func Bar(s string) string { return s + "-Foo" }`
+	i := interp.New(interp.Options{})
+	i.Use(stdlib.Symbols)
+	_, err := i.Eval(src)
+	if err != nil {
+		panic(err)
+	}
+	v, err := i.Eval("foo.Bar")
+	if err != nil {
+		panic(err)
+	}
+	bar := v.Interface().(func(string) string)
+	r := bar("Kung")
+	ast.Equal("Kung-Foo", r)
+
+	// test concurrent
+	var wg sync.WaitGroup
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			r := bar("Kung")
+			ast.Equal("Kung-Foo", r)
+		}()
+	}
+	wg.Wait()
+
 }

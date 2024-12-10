@@ -9,6 +9,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	github.com/studio-b12/gowebdav v0.9.0
+	github.com/traefik/yaegi v0.16.1
 	golang.org/x/net v0.32.0
 )
 

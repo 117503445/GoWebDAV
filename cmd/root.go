@@ -156,7 +156,6 @@ func getHandlerConfigs(dav string, davs []*koanf.Koanf) (handlerConfigs []*serve
 }
 
 func Execute() {
-
 	type Config struct {
 		Address         string `koanf:"address"`
 		Port            string `koanf:"port"`
