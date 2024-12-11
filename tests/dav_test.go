@@ -2,9 +2,12 @@ package tests
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -12,6 +15,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/studio-b12/gowebdav"
+	"github.com/traefik/yaegi/interp"
+	"github.com/traefik/yaegi/stdlib"
 )
 
 func TestMain(m *testing.M) {
@@ -148,7 +153,7 @@ func TestMultiDav(t *testing.T) {
 			Password: "pass",
 			ReadOnly: false,
 		},
-	}, false)
+	}, false, "")
 	assert.Nil(err)
 	go server.Run()
 
@@ -200,12 +205,135 @@ func TestSingleDav(t *testing.T) {
 			Password: "",
 			ReadOnly: false,
 		},
-	}, false)
+	}, false, "")
 	assert.Nil(err)
 	go server.Run()
 
 	client := gowebdav.NewClient("http://"+ADDR+"/", "", "")
 	untilConnected(assert, client)
 
+	apiTest(assert, client)
+}
+
+func TestPlugin(t *testing.T) {
+	ast := assert.New(t)
+	const src = `package foo
+func Bar(s string) string { return s + "-Foo" }`
+	i := interp.New(interp.Options{})
+	i.Use(stdlib.Symbols)
+	_, err := i.Eval(src)
+	if err != nil {
+		panic(err)
+	}
+	v, err := i.Eval("foo.Bar")
+	if err != nil {
+		panic(err)
+	}
+	bar := v.Interface().(func(string) string)
+	r := bar("Kung")
+	ast.Equal("Kung-Foo", r)
+
+	// test concurrent
+	var wg sync.WaitGroup
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			r := bar("Kung")
+			ast.Equal("Kung-Foo", r)
+		}()
+	}
+	wg.Wait()
+
+	// https://github.com/traefik/yaegi/discussions/1271
+	// custom struct
+	i = interp.New(interp.Options{})
+	i.Use(stdlib.Symbols)
+
+	type Data struct {
+		Message string
+	}
+
+	d := &Data{Message: "Kung"}
+	custom := make(map[string]map[string]reflect.Value)
+	custom["custom/custom"] = make(map[string]reflect.Value)
+	custom["custom/custom"]["Data"] = reflect.ValueOf((*Data)(nil))
+	i.Use(custom)
+
+	_, err = i.Eval(`
+	import "custom"
+	func Bar(d *custom.Data) string { return d.Message + "-Foo" }`)
+	if err != nil {
+		panic(err)
+	}
+
+	v, err = i.Eval("Bar")
+	if err != nil {
+		panic(err)
+	}
+
+	newBar := v.Interface().(func(*Data) string)
+
+	newR := newBar(d)
+	println(newR)
+}
+
+func TestPreRequest(t *testing.T) {
+	const ADDR = "localhost:8083"
+	assert := assert.New(t)
+
+	dav1Dir := "./data/pre-request-dav1"
+	assert.Nil(os.MkdirAll(dav1Dir, 0755))
+	assert.Nil(os.WriteFile(dav1Dir+"/"+file1Name, file1Content, 0644))
+
+	dav2Dir := "./data/pre-request-dav2"
+	assert.Nil(os.MkdirAll(dav2Dir, 0755))
+
+	assert.Nil(os.WriteFile(dav2Dir+"/"+file1Name, file1Content, 0644))
+
+	server, err := server.NewWebDAVServer(ADDR, []*server.HandlerConfig{
+		{
+			Prefix:   "/dav1",
+			PathDir:  dav1Dir,
+			Username: "",
+			Password: "",
+			ReadOnly: false,
+		},
+		{
+			Prefix:   "/dav2",
+			PathDir:  dav2Dir,
+			Username: "",
+			Password: "",
+			ReadOnly: false,
+		},
+	}, false, "/workspace/assets/Plugins/PreRequestExample")
+	assert.Nil(err)
+	go server.Run()
+
+	// annonymous can't access dav1
+	client := gowebdav.NewClient("http://"+ADDR+"/", "", "")
+	untilConnected(assert, client)
+	_, err = client.Read(fmt.Sprintf("/dav1/%s", file1Name))
+	assert.Error(err)
+
+	// user2 can only read dav1
+	client = gowebdav.NewClient("http://"+ADDR+"/dav1", "user2", "pass2")
+	untilConnected(assert, client)
+	readOnlyAPITest(assert, client)
+
+	// user1 can read/write dav1
+	client = gowebdav.NewClient("http://"+ADDR+"/dav1", "user1", "pass1")
+	untilConnected(assert, client)
+	apiTest(assert, client)
+
+	// user3 can't access dav1
+	client = gowebdav.NewClient("http://"+ADDR+"/dav1", "user3", "pass3")
+	untilConnected(assert, client)
+	_, err = client.Read(fmt.Sprintf("/dav1/%s", file1Name))
+	assert.Error(err)
+
+	// everyone access dav2
+	client = gowebdav.NewClient("http://"+ADDR+"/dav2", "", "")
+	untilConnected(assert, client)
 	apiTest(assert, client)
 }

@@ -156,18 +156,19 @@ func getHandlerConfigs(dav string, davs []*koanf.Koanf) (handlerConfigs []*serve
 }
 
 func Execute() {
-
 	type Config struct {
 		Address         string `koanf:"address"`
 		Port            string `koanf:"port"`
 		Dav             string `koanf:"dav" usage:"dav config, format: prefix,pathDir,username,password,readonly;..."`
 		DavListIsSecret bool   `koanf:"secret_dav_list" usage:"if true, hide the dav list"`
+		PreRequestHook string `koanf:"pre_request_hook" usage:"path to the pre request hook"`
 	}
 	cfg := &Config{
 		Address:         "0.0.0.0",
 		Port:            "80",
 		Dav:             DEFAULT_DAV_CONFIG,
 		DavListIsSecret: false,
+		PreRequestHook:  "",
 	}
 	result := goutils.LoadConfig(cfg)
 	log.Info().Interface("config", cfg).Msg("Config")
@@ -179,7 +180,8 @@ func Execute() {
 		log.Info().Msg("Default dav config is used, created default directories")
 	}
 
-	server, err := server.NewWebDAVServer(cfg.Address+":"+cfg.Port, handlerConfigs, cfg.DavListIsSecret)
+	server, err := server.NewWebDAVServer(cfg.Address+":"+cfg.Port, handlerConfigs, cfg.DavListIsSecret,
+		cfg.PreRequestHook)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create server")
 	}
