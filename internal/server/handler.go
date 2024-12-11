@@ -41,9 +41,12 @@ type handler struct {
 	password string // HTTP Basic Auth Password.
 
 	readOnly bool // if true, only allow GET, OPTIONS, PROPFIND, HEAD
+
+	preRequest preRequestFunc
+	cfg        *HandlerConfig
 }
 
-func NewHandler(cfg *HandlerConfig) *handler {
+func NewHandler(cfg *HandlerConfig, preRequest preRequestFunc) *handler {
 	return &handler{
 		handler: &webdavWithPATCH.Handler{
 			Handler: webdav.Handler{
@@ -52,33 +55,53 @@ func NewHandler(cfg *HandlerConfig) *handler {
 				Prefix:     cfg.Prefix,
 			},
 		},
-		prefix:   cfg.Prefix,
-		dirPath:  cfg.PathDir,
-		username: cfg.Username,
-		password: cfg.Password,
-		readOnly: cfg.ReadOnly,
+		prefix:     cfg.Prefix,
+		dirPath:    cfg.PathDir,
+		username:   cfg.Username,
+		password:   cfg.Password,
+		readOnly:   cfg.ReadOnly,
+		preRequest: preRequest,
+		cfg:        cfg,
 	}
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	enableBasicAuth := h.username != "" && h.username != "null"
-	if enableBasicAuth {
-		username, password, ok := req.BasicAuth()
-		// log.Debug().Str("username", username).Str("password", password).Bool("ok", ok).Msg("BasicAuth Request")
-		if !ok {
+	if h.preRequest == nil {
+		enableBasicAuth := h.username != "" && h.username != "null"
+		if enableBasicAuth {
+			username, password, ok := req.BasicAuth()
+			// log.Debug().Str("username", username).Str("password", password).Bool("ok", ok).Msg("BasicAuth Request")
+			if !ok {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			if username != h.username || password != h.password {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+
+		if h.readOnly && !readOnlyMethods[req.Method] {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+	} else {
+		// use preRequest hook
+
+		result := h.preRequest(h.cfg, req)
+
+		log.Debug().Interface("result", result).Msg("PreRequest Result")
+
+		if !result.Authed {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		if username != h.username || password != h.password {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-	}
-
-	if h.readOnly {
-		if !readOnlyMethods[req.Method] {
+		if result.ReadOnly && !readOnlyMethods[req.Method] {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}

@@ -71,7 +71,8 @@ GoWebDAV 能从多种来源读取配置，优先级从高到低依次是：CLI �
 | `address` | `string` | `0.0.0.0` | 监听地址 | `--address 0.0.0.0` | `address = "0.0.0.0"` | `ADDRESS=0.0.0.0` |
 | `port` | `int` | `80` | 监听端口 | `--port 80` | `port = 80` | `PORT=80` |
 | `dav` | `string` | `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false` | WebDAV 服务配置 | `--dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `dav = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `DAV="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` |
-| `secret_dav_list` | `bool` | `false` | 是否隐藏 WebDAV 服务列表 | `--secret-dav-list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
+| `secret_dav_list` | `bool` | `false` | 是否隐藏 WebDAV 服务列表 | `--secret_dav_list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
+| `pre_request_hook` | `string` | `` | PreRequestHook 插件的路径 | `--pre_request_hook` | `pre_request_hook = PreRequestExample.go` | `PRE_REQUEST_HOOK=PreRequestExample.go` |
 
 其中，`dav` 适合在 CLI 和 环境变量中使用，可以用单行的形式简便地配置多个 WebDAV 服务。但是在配置文件中，这种写法的可读性较差。为了提升配置文件的使用体验，你可以在配置文件中使用 `davs` 字段，如下：
 
@@ -101,5 +102,7 @@ readOnly = false
 ```
 
 GoWebDAV 会同时解析 `davs` 和 `dav` 字段，并将解析结果合并。如果定义了 `davs` 字段，且 `dav` 字段是默认值，那么会忽略 `dav` 字段；如果解析出的最终 dav 配置和默认值相同，就会自动创建实例文件夹及文件，方便用户快速上手。
+
+如果 GoWebDAV 内置的身份验证无法满足你的需求，那么你可以通过 `pre_request_hook` 配置 PreRequestHook 插件。具体文档见 [Plugins](./plugins_zh_CN.md)。
 
 好吧，我承认，GoWebDAV 的配置逻辑比较复杂，且各个配置方式不正交，存在很多特例。但是，这样的设计是为了让各种用户都有良好的使用体验。祝使用愉快！

@@ -71,7 +71,8 @@ The following configuration items support reading from CLI arguments, configurat
 | `address` | `string` | `0.0.0.0` | Listening address | `--address 0.0.0.0` | `address = "0.0.0.0"` | `ADDRESS=0.0.0.0` |
 | `port` | `int` | `80` | Listening port | `--port 80` | `port = 80` | `PORT=80` |
 | `dav` | `string` | `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false` | WebDAV service configuration | `--dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `dav = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `DAV="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` |
-| `secret_dav_list` | `bool` | `false` | Whether to hide the WebDAV service list | `--secret-dav-list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
+| `secret_dav_list` | `bool` | `false` | Whether to hide the WebDAV service list | `--secret_dav_list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
+| `pre_request_hook` | `string` | `` | The path of PreRequestHook plugin | `--pre_request_hook` | `pre_request_hook = PreRequestExample.go` | `PRE_REQUEST_HOOK=PreRequestExample.go` |
 
 `dav` is suitable for use in CLI and environment variables because it allows you to conveniently configure multiple WebDAV services in a single line. However, this format is less readable in configuration files. To enhance the usability of configuration files, you can use the `davs` field as follows:
 
@@ -101,5 +102,7 @@ readOnly = false
 ```
 
 GoWebDAV will parse both the `davs` and `dav` fields and merge the results. If the `davs` field is defined and the `dav` field is the default value, then the `dav` field will be ignored; if the final dav configuration parsed is the same as the default, instance folders and files will be automatically created to facilitate quick start-up.
+
+If the built-in authentication of GoWebDAV does not meet your needs, you can configure the PreRequestHook plugin using the `pre_request_hook`. For detailed documentation, please refer to [Plugins](./plugins.md).
 
 Admittedly, the configuration logic of GoWebDAV is somewhat complex, and the various configuration methods are not orthogonal, with many special cases. However, this design aims to provide a good user experience for all types of users. Enjoy using it!
