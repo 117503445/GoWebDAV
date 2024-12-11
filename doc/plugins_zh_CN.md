@@ -6,7 +6,7 @@
 
 PreRequestHook 插件是一个 GoWebDAV 的钩子插件，用于在处理 WebDAV 请求之前执行一些操作。在启用 PreRequestHook 插件后，GoWebDAV 会在处理 WebDAV 请求之前调用插件的 `PreRequest` 方法，并忽略内置的身份验证逻辑。
 
-插件使用 Go 语言编写，可以参考 [example](../assets/Plugins/PreRequestExample.go)。
+插件使用 Go 语言编写，可以参考 [example](../assets/Plugins/PreRequestExample)。
 
 大致上，你需要实现一个 `PreRequestHook` 方法：
 
@@ -22,5 +22,5 @@ func PreRequest(cfg *gowebdav.HandlerConfig, r *http.Request) *gowebdav.PreReque
 例子:
 
 ```sh
-./GoWebDAV --pre_request_hook assets/Hooks/PreRequestExample.go --dav /dav1,./dir1,null,null,true;/dav2,./dir2,null,null,true
+./GoWebDAV --pre_request_hook assets/Hooks/PreRequestExample --dav /dav1,./dir1,null,null,true;/dav2,./dir2,null,null,true
 ```

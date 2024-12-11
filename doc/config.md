@@ -72,7 +72,7 @@ The following configuration items support reading from CLI arguments, configurat
 | `port` | `int` | `80` | Listening port | `--port 80` | `port = 80` | `PORT=80` |
 | `dav` | `string` | `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false` | WebDAV service configuration | `--dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `dav = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `DAV="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` |
 | `secret_dav_list` | `bool` | `false` | Whether to hide the WebDAV service list | `--secret_dav_list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
-| `pre_request_hook` | `string` | `` | The path of PreRequestHook plugin | `--pre_request_hook` | `pre_request_hook = PreRequestExample.go` | `PRE_REQUEST_HOOK=PreRequestExample.go` |
+| `pre_request_hook` | `string` | `` | The path of PreRequestHook plugin | `--pre_request_hook` | `pre_request_hook = PreRequestExample` | `PRE_REQUEST_HOOK=PreRequestExample` |
 
 `dav` is suitable for use in CLI and environment variables because it allows you to conveniently configure multiple WebDAV services in a single line. However, this format is less readable in configuration files. To enhance the usability of configuration files, you can use the `davs` field as follows:
 

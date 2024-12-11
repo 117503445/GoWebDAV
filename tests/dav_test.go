@@ -306,7 +306,7 @@ func TestPreRequest(t *testing.T) {
 			Password: "",
 			ReadOnly: false,
 		},
-	}, false, "/workspace/assets/Plugins/PreRequestExample.go")
+	}, false, "/workspace/assets/Plugins/PreRequestExample")
 	assert.Nil(err)
 	go server.Run()
 

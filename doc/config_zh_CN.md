@@ -72,7 +72,7 @@ GoWebDAV 能从多种来源读取配置，优先级从高到低依次是：CLI �
 | `port` | `int` | `80` | 监听端口 | `--port 80` | `port = 80` | `PORT=80` |
 | `dav` | `string` | `/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false` | WebDAV 服务配置 | `--dav "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `dav = "/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` | `DAV="/public-writable,./data/public-writable,null,null,false;/public-readonly,./data/public-readonly,null,null,true;/private-writable,./data/private-writable,user1,pass1,false"` |
 | `secret_dav_list` | `bool` | `false` | 是否隐藏 WebDAV 服务列表 | `--secret_dav_list` | `secret_dav_list = true` | `SECRET_DAV_LIST=true` |
-| `pre_request_hook` | `string` | `` | PreRequestHook 插件的路径 | `--pre_request_hook` | `pre_request_hook = PreRequestExample.go` | `PRE_REQUEST_HOOK=PreRequestExample.go` |
+| `pre_request_hook` | `string` | `` | PreRequestHook 插件的路径 | `--pre_request_hook` | `pre_request_hook = PreRequestExample` | `PRE_REQUEST_HOOK=PreRequestExample` |
 
 其中，`dav` 适合在 CLI 和 环境变量中使用，可以用单行的形式简便地配置多个 WebDAV 服务。但是在配置文件中，这种写法的可读性较差。为了提升配置文件的使用体验，你可以在配置文件中使用 `davs` 字段，如下：
 
