@@ -16,7 +16,7 @@ jobs:
         with:
           go-version: "1.23"
 
-      - run: go test ./...
+      - run: CGO_ENABLED=0 go test ./...
 
       - run: go build -ldflags "-s -w" -o gowebdav_linux_amd64 .
       - run: CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o gowebdav_windows_amd64.exe .
