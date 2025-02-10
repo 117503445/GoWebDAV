@@ -2,8 +2,6 @@ services:
   gowebdav-dev:
     build:
       dockerfile: Dockerfile.dev
-    container_name: gowebdav-dev
-
     volumes:
         - './:/workspace'
     stdin_open: true
