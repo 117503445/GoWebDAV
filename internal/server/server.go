@@ -114,6 +114,7 @@ func NewWebDAVServer(addr string, handlerConfigs []*HandlerConfig, davListIsSecr
 				continue
 			}
 			handler.ServeHTTP(w, req)
+			// loggingMiddleware(handler).ServeHTTP(w, req)
 			return
 		}
 
