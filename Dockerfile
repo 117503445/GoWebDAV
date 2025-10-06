@@ -1,4 +1,4 @@
-FROM golang:1.23 AS build
+FROM golang:1.25.1 AS build
 ARG GOPROXY=https://proxy.golang.org,direct
 WORKDIR /workspace
 COPY go.mod go.sum ./

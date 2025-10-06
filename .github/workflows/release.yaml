@@ -14,7 +14,7 @@ jobs:
       # https://github.com/actions/setup-go
       - uses: actions/setup-go@v4
         with:
-          go-version: "1.23"
+          go-version: "1.25"
 
       - run: CGO_ENABLED=0 go test ./...
 
