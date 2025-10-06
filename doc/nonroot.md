@@ -1,10 +1,22 @@
 # nonroot
 
-If you want to use Gowebdav with Docker under a non-root user, you can follow these steps.
+If you wish to run Gowebdav in Docker under a non-root user environment, please follow the steps below.
 
 ## Steps
 
-Using Docker Compose as an example, let's say you want to share `./data/dir1` and `./data/dir2` directories. First, prepare a `docker-compose.yml` file:
+Taking Docker Compose as an example, suppose you want to share two directories: `./data/dir1` and `./data/dir2`. First, prepare your directories:
+
+```bash
+mkdir -p ./data  # This is just an example; you can create directories in any way you prefer
+```
+
+Next, obtain the UID and GID of the directory:
+
+```bash
+ls -nd ./data | awk '{ print $3":"$4 }'
+```
+
+Then, create a `docker-compose.yml` file:
 
 ```yaml
 services:
@@ -12,19 +24,12 @@ services:
     image: 117503445/go_webdav
     restart: unless-stopped
     volumes:
-      - ./data:/home/nonroot
+      - ./data:/data
     environment:
-      - "dav=/dir1,/home/nonroot/dir1,null,null,false;/dir2,/home/nonroot/dir2,null,null,false"
+      - "dav=/dir1,/data/dir1,null,null,false;/dir2,/data/dir2,null,null,false"
     ports:
       - "80:80"
-    user: "nonroot" # Specify the user inside the container as nonroot
-```
-
-Next, create the directories and set the permissions to 777:
-
-```bash
-mkdir -p ./data/dir1 ./data/dir2
-chmod 777 ./data/dir1 ./data/dir2
+    user: "1000:1000"  # Replace with the correct UID and GID to ensure execution under the proper user
 ```
 
 Finally, start the container:
@@ -35,10 +40,6 @@ docker compose up -d
 
 ## Notes
 
-`117503445/go_webdav` is based on [gcr.io/distroless/static-debian12](https://github.com/GoogleContainerTools/distroless). The `nonroot` user inside the image is a non-root user with a UID of 65532 and has write permissions to the `/home/nonroot` directory.
-
-- If you do not create the `data` directory in advance, it will be automatically created when the container starts. However, this will be done by the Docker Daemon with root privileges, which may lead to permission issues.
-- If you do not create the `dir1` and `dir2` directories in advance, they will be created by `GoWebdav` when the container starts. Since these directories will belong to the `nonroot` user, external regular users will not be able to write to them.
-- If you do not set the permissions to 777 in advance, the `nonroot` user in `GoWebdav` will not be able to write to these directories.
-
-In the scenarios described above, both inside and outside the container are regular users. If you only require the container to run as a regular user and the host to run as root, or vice versa, the setup might be simpler.
+Docker supports specifying a user via the `--user "UID:GID"` option, allowing you to run containers as a non-root user.  
+However, you must create the `data` directory in advance to prevent the Docker daemon from creating it with root permissions, which could lead to permission issues.  
+In the scenario above, both inside and outside the container use a regular (non-root) user. If you only require the container to run as a regular user while the host uses root (or vice versa), the setup might be simpler.
